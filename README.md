@@ -11,4 +11,6 @@ The controller will have and 128x64 LCD screen, SD-card reader (for parameters a
 
 I have no deadline for the project, and the main target is to satisfy my own needs, so probably this will not ever be a product I could sell. But you never know.
 
+Sorry for the Finnish language comments left in the code. :D
+
 -Tuomas
