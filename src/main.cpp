@@ -142,7 +142,6 @@ void setup()
   Timer1.attachInterrupt(coreLoop).start(1000);
   Timer2.attachInterrupt(uiLoop).start(100000);
 
-  //attachInterrupt(digitalPinToInterrupt(22), print, FALLING); 
   adc_setup();
   pwmsetup();
 }

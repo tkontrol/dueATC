@@ -14,8 +14,7 @@ core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicl
     startupCounter_(0),
     currentGear_(2),
     targetGear_(2)
-{
-   
+{   
 }
 
 core::~core()
@@ -111,8 +110,8 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     controlPWMSolenoids();
     updateLog();
 
-    lever_ = D; // POISTA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-    //analogWrite(2, 0); // MITÄ TÄMÄ OIKEIN AIHEUTTAA????
+    lever_ = D; // REMOVE AFTER TESTING
+    //analogWrite(2, 0); // WHAT DOES THIS CAUSE??
     //analogWrite(3, 0);
     //analogWrite(4, 0);
 
@@ -123,7 +122,7 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     testcounter_++; 
 
 
-    int luku = TCCcontrol_.givePIOutput();
+  //  int luku = TCCcontrol_.givePIOutput();
     
  /*
     if (testcounter_ == 700)
@@ -470,6 +469,7 @@ void core::doShiftLogic()
             if (!detectGear()) // if gear ratio does not match any of the gears, sth is wrong. if detectGear returns true, everything is ok and shift can be terminated.
             {
                 currentGear_ = targetGear_; // pakko olla tässä, että vaihto loppuu joskus... VAI ONKO PAKKO OLLA TÄSSÄ?
+                // pitääkö tässä laittaa vikakoodi päälle tai ainakin automaattimoodi pois päältä?
             }
             shifting_ = false;
 
