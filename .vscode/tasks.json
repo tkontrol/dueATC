@@ -1,0 +1,32 @@
+{
+ "version": "2.0.0",
+ "tasks": [
+  {
+   "type": "cppbuild",
+   "label": "g++ build active sfmlfile",
+   "command": "C:/Users/Tuomas/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe",
+   "args": [
+    "-g",
+    "${file}",
+    "-o",
+    "${fileDirname}\\${fileBasenameNoExtension}.exe",
+    "-mcpu=cortex-m3",
+    "-mthumb",
+    "${fileDirname}/menuCollection/menuCollection.cpp",
+    "${fileDirname}/analogMeasurement/analogMeasurement.cpp",
+    "${fileDirname}/TCCcontrol/TCCcontrol.cpp"
+   ],
+   "options": {
+    "cwd": "C:/Users/Tuomas/.platformio/packages/toolchain-gccarmnoneeabi/bin"
+   },
+   "problemMatcher": [
+    "$gcc"
+   ],
+   "group": {
+    "kind": "build",
+    "isDefault": true
+   },
+   "detail": "compiler: C:/Users/Tuomas/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe"
+  }
+ ]
+}
