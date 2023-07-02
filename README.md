@@ -8,7 +8,7 @@ Chassis is a Volvo 940 STW from 1993. Transmission has a welded bellhousing to f
 
 My goal is to create a rather simple, easy-to-approach and versatile open-source controller, which you should be able to customize to your own needs just with Arduino and basic OOP skills.
 Both hardware and software are still in progress. PCB design is ~90 % complete, so far I've made only lab-testing with breadboards etc.
-The controller will have and 128x64 LCD screen, SD-card reader (for parameters and maps), and a button pad.
+The controller will have and 128x64 LCD screen ("U8g2" library), SD-card reader ("SD" library), and a button pad. Also library "DueTimer" is utilized.
 
 I have no deadline for the project, and the main target is to satisfy my own needs, so probably this will not ever be a product I could sell. But you never know.
 
