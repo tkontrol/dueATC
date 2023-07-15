@@ -61,20 +61,6 @@ bool controlButton::givePulse()
 } 
 
 //returns only ONE 'true' in the first loop, not in upcoming loops, even if the button is kept pressed 
-/*
-bool controlButton::giveSingleShot()
-{
-    bool buttonState = !digitalRead(buttonPin_); // inverse because pull-up   
-
-    if (buttonState && !block_)
-    {
-        block_ = true;
-        return true;
-    }
-    return false;
-} */
-
-//returns only ONE 'true' in the first loop, not in upcoming loops, even if the button is kept pressed 
 bool controlButton::giveSingleShot()
 {
     bool buttonState = !digitalRead(buttonPin_); // inverse because pull-up
