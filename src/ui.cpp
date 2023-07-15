@@ -61,20 +61,22 @@ void ui::runCoreLoop() // called in 1ms intervals
 
 void ui::runUiLoop()
 {
-  checkPendingCoreNotifications();
+  checkForMalfunction();
+  checkPendingCoreNotifications();  
+  screen_.advanceTextScrolls();
   if (notificationActive_)
   {
     printNotification();
   }
   else
   {
-      rightButton_.releaseBlock();
-      leftButton_.releaseBlock();
-      upButton_.releaseBlock();
-      downButton_.releaseBlock();
-      okButton_.releaseBlock();
-      cancelButton_.releaseBlock();
-      updateMenu();
+    rightButton_.releaseBlock();
+    leftButton_.releaseBlock();
+    upButton_.releaseBlock();
+    downButton_.releaseBlock();
+    okButton_.releaseBlock();
+    cancelButton_.releaseBlock();
+    updateMenu();
   }
 }
 
@@ -134,13 +136,24 @@ void ui::showNotification(int time, String msg)
    core_.startNotificationTimer(time);
 }
 
+void ui::checkForMalfunction()
+{
+  if (core_.giveMalfunctionStatus())
+  {
+    //fallBackMenu_ = currentMenu_; 
+    //fallBackSelection_ = currentMenu_->selection;
+    //currentMenu_ = &malfunctionMenu_;
+    //currentMenu_->selection = 1;
+  }
+}
+
 void ui::checkPendingCoreNotifications()
 {
-   if (core_.checkNotification().pending)
-   {   
-      core_.markNotificationAsReceived();   
-      showNotification(core_.checkNotification().time, core_.checkNotification().message);      
-   }
+  if (core_.checkNotification().pending)
+  {   
+    core_.markNotificationAsReceived();   
+    showNotification(core_.checkNotification().time, core_.checkNotification().message);      
+  }
 }
 
 void ui::printNotification()
@@ -302,7 +315,7 @@ void ui::updateMenu()
   {
     bool up = upButton_.givePulse();
     bool down = downButton_.givePulse();
-    bool ok = okButton_.givePulse();
+    bool ok = okButton_.givePulse(); // this must be givePulse, not singleShot, because singleShot will prevent returning true later in a loop if used in a function
 
     if (down)
     {
@@ -1635,7 +1648,7 @@ bool ui::editSingleAxisMap(configHandler::singleAxisMap* map)
   {
     editingMode_ = true;
   }
-  if (editingMode_ )
+  if (editingMode_)
   {
     if (cancelButton_.giveSingleShot())
     {
@@ -1645,14 +1658,14 @@ bool ui::editSingleAxisMap(configHandler::singleAxisMap* map)
 
   if (!editingMode_) // navigate in map if editing mode is inactive
   {
-      if (rightButton_.givePulse() && editorColumn_ < map->columns-1)
-      {
-          editorColumn_++;
-      }
-      if (leftButton_.givePulse() && editorColumn_ > 0)
-      {
-          editorColumn_--;
-      }
+    if (rightButton_.givePulse() && editorColumn_ < map->columns-1)
+    {
+        editorColumn_++;
+    }
+    if (leftButton_.givePulse() && editorColumn_ > 0)
+    {
+        editorColumn_--;
+    }
   }
   else // change selected map value if editing mode is active
   {
@@ -1728,8 +1741,7 @@ bool ui::editSingleAxisMap(configHandler::singleAxisMap* map)
     }
     screen_.setFont(u8g2_font_trixel_square_tn);  // change back to normal font if changed 
   }
-rowDataItemPos = rowDataStartPos;  
-
+  rowDataItemPos = rowDataStartPos;  
   return !exitMapEditor();
 }
 
@@ -2002,6 +2014,82 @@ bool ui::showTCCTuneView()
 
 }
 
+bool ui::showMalfunctionCodes()
+{
+  screen_.setFont(u8g2_font_synchronizer_nbp_tf);
+  screen_.drawStr(25, 8, "FAULT CODES");
+  screen_.drawLine(0, 10, 128, 10);  
+
+  static bool confirmResetView = false;
+
+  if (okButton_.giveSingleShot() && !confirmResetView)
+  {
+    confirmResetView = true;
+  }
+
+  if (!confirmResetView)
+  { 
+    int xoffset = 0;	
+    const int firstLine = 18;
+    const int lineGap = 9;
+    
+    screen_.setFont(u8g_font_5x8);
+    uint8_t counter = 0;
+    uint8_t activeCodes = 0;
+    uint8_t descriptionCharsToDisplay = 22;
+
+    for (uint8_t i = 0; i < sizeof(dataPtrs_.malfuncs->codes)/sizeof(dataPtrs_.malfuncs->codes[0]); i++)
+    {
+      if (dataPtrs_.malfuncs->codes[i] == true) {activeCodes++;}// get number of active fault codes
+    }
+    if (activeCodes > 5)
+    {
+      descriptionCharsToDisplay = 8; // in case there are more than 5, they dont fit in one column -> shorten the displayed description
+    }    
+    if (activeCodes == 0){showNotification(1500, "No active fault codes!"); return true;}
+
+    for (uint8_t j = 0; j < sizeof(dataPtrs_.malfuncs->codes)/sizeof(dataPtrs_.malfuncs->codes[0]); j++) // print all active fault codes
+    {
+      if (dataPtrs_.malfuncs->codes[j] == true)
+      {
+        screen_.setCursor(xoffset, firstLine+lineGap*counter);
+        screen_.print("E");
+        screen_.print(j);
+        screen_.print(":");
+        screen_.scrollText(&dataPtrs_.malfuncs->descriptions[j], descriptionCharsToDisplay, 25);        
+        counter++;
+        if (counter > 5)  //...in two columns, if necessary
+        {
+          xoffset = 60;
+          counter = 0;
+        }
+      }
+    }
+  }
+  else if (dataPtrs_.malfuncs->activeMalfunctions) // ask to confirm the clear of all codes
+  {
+    screen_.drawStr(16, 25, "PRESS OK TO");
+    screen_.drawStr(14, 40, "CLEAR ALL CODES");
+    screen_.setFont(u8g_font_5x8);
+    screen_.drawStr(0, 64, "Press cancel to return");
+
+    if (okButton_.givePulse())// clear all codes and return to view
+    { 
+      core_.clearFaultCodes();
+      showNotification(2000, "All fault codes cleared.");
+      confirmResetView = false;
+    } 
+    if (cancelButton_.giveSingleShot()) {confirmResetView = false;} // do nothing and return to view
+  }  
+
+  if (!confirmResetView && cancelButton_.giveSingleShot()) // exit the view
+  {
+    confirmResetView = false;
+    return true;
+  }
+  return false;
+}
+
 bool ui::goToMPCMapMenu()
 {
   currentMenu_ = &MPCMenu_ ;
@@ -2152,8 +2240,22 @@ bool ui::restoreDefaultConfigFile()
 
 bool ui::showOther()
 {
-    screen_.drawOther();
-    return cancelButton_.giveSingleShot();
+  screen_.drawOther();
+  return cancelButton_.giveSingleShot();
+}
+
+bool ui::showMalfunctionCode1()
+{
+  // HERE PRINT STUFF ON THE SCREEN THAT MALFUNCTION HAS HAPPENED AND STH HAS TO BE DONE
+
+  if (cancelButton_.giveSingleShot()) // if cancel is pressed, reset the fault code fall back to previous menu and selection
+  {
+    core_.clearFaultCodes();
+    currentMenu_ = fallBackMenu_;
+    currentMenu_->selection = fallBackSelection_;
+    return true;
+  }
+  return false;
 }
 
 void ui::drawMenu(menuCollection* menu)

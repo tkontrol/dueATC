@@ -10,15 +10,6 @@ screenControl::~screenControl()
 
 }
 
-void screenControl::drawLiveData2()
-{	
-  const int firstLine = 18;
-
-  setFont(u8g_font_5x8);
-  drawStr(0, firstLine-9, "<<");
-  drawStr(35, firstLine-9, "LIVE DATA 2");
-  drawLine(0, firstLine-8, 128, firstLine-8);
-}
 
 void screenControl::drawOther()
 {
@@ -37,13 +28,38 @@ int screenControl::giveBrightness()
 {
   return brightness_;
 }
-/*
-void screenControl::setDataPointers(core::dataStruct data)
+
+void screenControl::advanceTextScrolls() // runs on every uiLoop (100ms)
 {
-    engineSpeed_ = data.engineSpeed;
-    vehicleSpeed_ = data.vehicleSpeed;
-    n2Speed_ = data.n2Speed;
-    n3Speed_ = data.n3Speed;
-    cardanSpeed_ = data.cardanSpeed;
-    n3n2Ratio_ = data.n3n2Ratio;
-} */
+  scrollCounter_++;
+}
+
+void screenControl::scrollText(String *text, uint8_t maxChars, int uiLoopsBetweenCharSrolls)
+{
+  static uint8_t firstChar = 0;
+  static uint8_t textLength = 0;
+
+  if (textLength < text->length()) // in case there are multiple texts running at the same time on the screen, the longest one dictates
+  {
+    textLength = text->length();
+  }
+
+  if (text->length() <= maxChars) // if text fits to given area without scrolling, print it directly
+  {
+    print(text->c_str());
+  } 
+  else 
+  {
+    print (text->substring(firstChar, firstChar + maxChars));
+    if (scrollCounter_ >= uiLoopsBetweenCharSrolls) // roll the text
+    {
+      scrollCounter_ = 0;
+      firstChar++;
+    }
+    if (firstChar == textLength) // start scrolling from the beginning
+    {
+      scrollCounter_ = 0;
+      firstChar = 0;
+    }
+  } 
+}

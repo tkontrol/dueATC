@@ -198,7 +198,7 @@ class configHandler
 		parameter driveShaftPulsesPerRev_;
 	
 
-		const int parametersAmount_ = 8; // remember to update after adding params
+		const uint8_t parametersAmount_ = 8; // remember to update after adding params
 
 		parameter* parameters_[8] = {&tccControlPfactor_, &tccControlIfactor_, &startWith1StGear_ ,&minimumVehicleSpeedForGearRatioDetection_, &wheelCircum_, 
 		&brightness_, &engineSpeedPulsesPerRev_, &driveShaftPulsesPerRev_};

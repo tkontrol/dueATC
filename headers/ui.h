@@ -15,6 +15,12 @@
 #define okButtonPin 18
 #define cancelButtonPin 19
 
+#define PswitchPin 25
+#define RswitchPin 23
+
+#define gearPlusPin 50
+#define gearMinusPin 52
+
 
 class ui
 {
@@ -31,6 +37,7 @@ class ui
 		void setScreenDataPointers();
 		void setDataPointers(core::dataStruct data);
 		void showNotification(int time, String msg);
+		void checkForMalfunction();
 		void checkPendingCoreNotifications();
 		void printNotification();
 		void updateParameter(configHandler::parameter* p);
@@ -86,12 +93,17 @@ class ui
 
 		menuCollection* currentMenu_;
 
+		// to save menu and selection
+		menuCollection* fallBackMenu_;
+    	uint8_t fallBackSelection_;
+
 		// Main menu
-		menuObj mainM_[4] = {
+		menuObj mainM_[5] = {
 			{"Main Screen", &ui::showMainScreen},
 			{"Settings", &ui::goToSettingsMenu},
 			{"Live Data", &ui::goToLiveDataMenu},
-			{"TCC PI ctrl tune", &ui::showTCCTuneView}
+			{"TCC PI ctrl tune", &ui::showTCCTuneView},
+			{"Fault codes", &ui::showMalfunctionCodes}
 		}; 
 		menuCollection mainMenu_ = {sizeof(mainM_)/sizeof(mainM_[0]), 0, &*mainM_};
 
@@ -142,7 +154,7 @@ class ui
 		// SD Card menu
 		menuObj SDM_[4] = {
 			{"Re-read config file", &ui::readConfigFile},
-			{"Overwr. conf file", &ui::overWriteConfigFile},
+			{"Write RAM to file", &ui::overWriteConfigFile},
 			{"Restore def. conf", &ui::restoreDefaultConfigFile},
 			{"Back to settings", &ui::goToSettingsMenu}
 		}; 
@@ -193,8 +205,15 @@ class ui
 		}; 
 		menuCollection SPCMenu_  = {sizeof(SPCM_)/sizeof(SPCM_[0]), 0, &*SPCM_};
 
-	public:
+		/*
 
+		// Malfunctions menu, hidden!
+		menuObj malfM_[1] = {
+			{"1", &ui::showMalfunctionCode1},
+		}; 
+		menuCollection malfunctionMenu_ = {sizeof(malfM_)/sizeof(malfM_[0]), 0, &*malfM_};*/
+
+	public:
 		ui();
 		~ui();
 
@@ -211,8 +230,8 @@ class ui
 		void initUI();
 
 		void updateMenu();		
-		void firstPage();
-		bool nextPage();
+		void firstPage(); // for picture loop
+		bool nextPage(); // for picture loop
 		bool showMainScreen();
 		void drawMainScreen();
 		bool showLiveData1();
@@ -238,6 +257,7 @@ class ui
 		bool goToSingleAxisMapEditorMenu();
 		bool showParamEditor();
 		bool showTCCTuneView();
+		bool showMalfunctionCodes();
 		bool goToMPCMapMenu();
 		bool goToSPCMapMenu();
 		bool editMPCNormalDriveMap();
@@ -287,7 +307,7 @@ class ui
 		bool readConfigFile();
 		bool overWriteConfigFile();
 		bool restoreDefaultConfigFile();
-
+		bool showMalfunctionCode1();
 		bool showOther();
 		bool goToMainMenu();
 		bool goToLiveDataMenu();

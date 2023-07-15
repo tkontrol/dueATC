@@ -34,6 +34,32 @@ void core::initController()
     notification_.pending = false;
     notification_.isShown = true;
     log_.amount = 0;
+
+
+    malfunctions_.descriptions[0] = "Failed to shift to gear 1";
+    malfunctions_.descriptions[1] = "Failed to shift to gear 2";
+    malfunctions_.descriptions[2] = "Failed to shift to gear 3";
+    malfunctions_.descriptions[3] = "Failed to shift to gear 4";
+    malfunctions_.descriptions[4] = "Failed to shift to gear 5";
+    malfunctions_.descriptions[5] = "Transm ratio does not match any gear after shift"; // activated if transmission ratio after shift does not match any of the gears -> slipping?
+
+
+    malfunctions_.descriptions[6] = "Too big diff with prim and sec veh spd sensors";
+    malfunctions_.descriptions[7] = "Some kind of error";
+    malfunctions_.descriptions[8] = "Some another kind of error";
+    malfunctions_.descriptions[9] = "Some third kind of error";
+
+ 
+    activateMalfunction(1);
+    activateMalfunction(4);
+    activateMalfunction(5);
+    activateMalfunction(6);
+    activateMalfunction(8);
+    activateMalfunction(9);
+    activateMalfunction(0);
+    activateMalfunction(3);
+    activateMalfunction(2);
+    activateMalfunction(7); 
 }
 
 
@@ -465,21 +491,35 @@ void core::doShiftLogic()
             digitalWrite(SOL_12_45, LOW);
             digitalWrite(SOL_23, LOW);
             digitalWrite(SOL_34, LOW);
-
-            if (!detectGear()) // if gear ratio does not match any of the gears, sth is wrong. if detectGear returns true, everything is ok and shift can be terminated.
-            {
-                currentGear_ = targetGear_; // pakko olla tässä, että vaihto loppuu joskus... VAI ONKO PAKKO OLLA TÄSSÄ?
-                // pitääkö tässä laittaa vikakoodi päälle tai ainakin automaattimoodi pois päältä?
-            }
             shifting_ = false;
+            if (detectGear())  // if here detectGear returns true, the measured ratio matches some gear, though it may not be the target one
+            {                  // -> activate fault code. detectGear() takes care of setting currentGear_ = targetGear_
+                if (targetGear_ == 1) {activateMalfunction(0);}
+                if (targetGear_ == 2) {activateMalfunction(1);}
+                if (targetGear_ == 3) {activateMalfunction(2);}
+                if (targetGear_ == 4) {activateMalfunction(3);}
+                if (targetGear_ == 5) {activateMalfunction(4);}
+            }             
+            else // if detectGear() returns false, gear ratio does not match any of the gears, sth is wrong 
+            {  
+                if (targetGear_ == 1) {activateMalfunction(0);}
+                if (targetGear_ == 2) {activateMalfunction(1);}
+                if (targetGear_ == 3) {activateMalfunction(2);}
+                if (targetGear_ == 4) {activateMalfunction(3);}
+                if (targetGear_ == 5) {activateMalfunction(4);}    
+                activateMalfunction(5);
+                shiftingMode_ = MAN;
+                currentGear_ = targetGear_ = 0; // pakko olla tässä, että vaihto loppuu joskus... VAI ONKO JOS VAIHDETAAN MANUAALILLE               
+            }            
 
-            if (lastShiftDuration_ < config_.giveShiftTimeTargetValue(load_) - 50)
+            // if there is need to alter SPC or SPC maps
+            if (lastShiftDuration_ < config_.giveShiftTimeTargetValue(load_) - 200) // milliseconds
             {
                 config_.modifyLastShiftMaps(-5,-5);                            
                 lastMPCchange_ = '-';
                 lastSPCchange_ = '-';
             }
-            else if (lastShiftDuration_ > config_.giveShiftTimeTargetValue(load_) + 50)
+            else if (lastShiftDuration_ > config_.giveShiftTimeTargetValue(load_) + 200) // milliseconds
             {
                 config_.modifyLastShiftMaps(+5,+5);                            
                 lastMPCchange_ = '+';
@@ -610,7 +650,7 @@ void core::updateLog()
 
 void core::gearUpRequest()
 {
-    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R))
+    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R) && !malfunctions_.activeMalfunctions)
     {
         gearUpReq_ = true;
     }
@@ -618,7 +658,7 @@ void core::gearUpRequest()
 
 void core::gearDownRequest()
 {
-    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R))
+    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R) && !malfunctions_.activeMalfunctions)
     {  
         gearDownReq_ = true;
     }
@@ -629,7 +669,7 @@ void core::makeUpShiftCommand()
     static int delayCounter = 0;
     static bool counting;
 
-    if (gearUpReq_ && delayCounter == 0 && !shifting_ && usePreShiftDelay_)
+    if (gearUpReq_ && delayCounter == 0 && !shifting_ && usePreShiftDelay_ && !malfunctions_.activeMalfunctions)
     {
         counting = true;
         gearUpReq_ = false;
@@ -656,7 +696,7 @@ void core::makeDownShiftCommand()
     static int delayCounter = 0;
     static bool counting;
 
-    if (gearDownReq_ && delayCounter == 0 && !shifting_ && usePreShiftDelay_)
+    if (gearDownReq_ && delayCounter == 0 && !shifting_ && usePreShiftDelay_ && !malfunctions_.activeMalfunctions)
     {
         counting = true;
         gearDownReq_ = false;
@@ -727,7 +767,7 @@ bool core::detectGear()
         else
         {
             currentGear_ = targetGear_ = 2;
-            if (startWith1StGear_ && currentGear_ == 2)
+            if (startWith1StGear_ && currentGear_ == 2 && !malfunctions_.activeMalfunctions)
             {
                 gearDownComm_ = true; //here command, no need to create request
             }            
@@ -748,6 +788,7 @@ bool core::detectGear()
     case N:
         // TO BE IMPLEMENTED:
         // BLOCK ALL ACTIONS HERE AND MAKE GEAR RATIO CHECK AFTER MOVING AWAY FROM N !
+
         break;
     
     case D:
@@ -794,7 +835,7 @@ bool core::detectGear()
         }
         break;
     }  
-    return true; // ratio matches a certain gear, all ok -> return true
+    return true; // ratio matches certain gear, all ok -> return true
 }
 
 void core::setLoggableVariable(core::loggableVariable var)
@@ -874,6 +915,20 @@ struct core::logStruct* core::giveLogPtr()
     return &log_;
 }
 
+bool core::giveMalfunctionStatus()
+{
+    return malfunctions_.activeMalfunctions;
+}
+
+void core::clearFaultCodes()
+{
+    for (uint8_t i = 0; i < sizeof(malfunctions_.codes)/sizeof(malfunctions_.codes[0]); i++)
+    {
+        malfunctions_.codes[i] = false;
+    }
+    malfunctions_.activeMalfunctions = false;
+}
+
 struct core::dataStruct core::giveDataPointers()
 { 
     data_.lastShiftDuration = &lastShiftDuration_;
@@ -906,6 +961,7 @@ struct core::dataStruct core::giveDataPointers()
     data_.MPCchange = &lastMPCchange_;
     data_.SPCchange = &lastSPCchange_;
     data_.tccControlOutput = TCCcontrol_.giveOutputPointer();
+    data_.malfuncs = &malfunctions_;
 
     return data_;
 }
@@ -945,6 +1001,12 @@ void core::printData()
     Serial.print("     "); 
 
     Serial.print("\n");    */
+}
+
+void core::activateMalfunction(uint8_t code)
+{
+    malfunctions_.codes[code] = true;
+    malfunctions_.activeMalfunctions = true;
 }
 
 

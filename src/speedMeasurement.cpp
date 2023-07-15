@@ -15,9 +15,9 @@ speedMeasurement::~speedMeasurement()
 // changes pulsesPerRev value
 void speedMeasurement::setPulsesPerRev(int pulsesPerRev)
 {
-    calcConst_ = 60 / pulsesPerRev * 1000000; // now this does not need to be calculated in every giveRPM() -call
+    calcConst_ = 60 / pulsesPerRev * 1000000; // with calcConst_, this does not need to be calculated in every giveRPM() -call
     longestPeriodToAccept_ = (60 * 1000000) / (minRPM_ * pulsesPerRev); // based on pulses per rev and minimun allowable rpm, calculate longestPeriodToAccept
-    shortestPeriodToAccept_ = (60 * 1000000) / (maxRPM_ * pulsesPerRev); // based on pulses per rev and minimun allowable rpm, calculate longestPeriodToAccept
+    shortestPeriodToAccept_ = (60 * 1000000) / (maxRPM_ * pulsesPerRev); // based on pulses per rev and maximum allowable rpm, calculate shortestPeriodToAccept
 }
 
 // clock, run with 10us intervals
@@ -33,7 +33,7 @@ void speedMeasurement::calcPeriodLength() // run on rising edge of signal, updat
     counter_ = 0;
 }
 
-// lowpass filter, run with 1ms intervals
+// lowpass filter, to be run with 1ms intervals. this basically limits the measured periodLength_ change to max 100us every 1ms
 void speedMeasurement::useLowPass()
 {   
     int cp = mem_; // store current period length
@@ -53,8 +53,8 @@ void speedMeasurement::useLowPass()
 // return RPM
 int speedMeasurement::giveRPM()
 {
-    useLowPass();
-    // periodLength_ = mem_;
+    useLowPass(); // comment this if you want to disable low pass filter
+    // periodLength_ = mem_; // uncomment this if you want to disable low pass filter
     int rpm = calcConst_ / periodLength_;
     if (rpm < minRPM_ || counter_ > longestPeriodToAccept_)
     {

@@ -15,10 +15,12 @@
 //#define n3PulsesPerRev 6
 
 //#define wheelPerimeter 2000 // millimeters
+#define MALFUNCTIONMEMORY_MAX_SIZE 10 // how many malfunctions can be stored
 #define LOGGER_MAX_SIZE 500 // max cells in log struct
 #define SOL_12_45 40 //pin for 1-2/4-5 shift solenoid
 #define SOL_23 42 //pin for 2-3 shift solenoid
 #define SOL_34 44 //pin for 3-4 shift solenoid
+
 
 
 class core  
@@ -95,7 +97,17 @@ class core
 		struct notificationStruct notification_;
 		configHandler::parameterContainer* parametersPtr_;
 
-		// testikäyttö:
+		struct malfunctionMemory
+		{
+			bool codes[MALFUNCTIONMEMORY_MAX_SIZE]; // position in array equals code
+			String descriptions[MALFUNCTIONMEMORY_MAX_SIZE];
+			bool activeMalfunctions;		
+		};
+
+		struct malfunctionMemory malfunctions_;
+		void activateMalfunction(uint8_t code);
+
+		// for test purposes
 		int testcounter_;
 		float prevRatio_;
 		unsigned long int clock_;
@@ -110,7 +122,6 @@ class core
 		leverPos lever_;
 		enum shiftingMode {MAN, AUT};
 		shiftingMode shiftingMode_;
-		//enum tccMode {open, slipping};
 
 		TCCcontrol::TCCMode tccMode_;
 		configHandler::driveType driveType_;
@@ -151,6 +162,7 @@ class core
 			char* MPCchange;
 			char* SPCchange;
 			int* tccControlOutput;
+			malfunctionMemory* malfuncs;
 		};	
 
 		struct dataStruct data_ = {};
@@ -164,6 +176,7 @@ class core
 		};
 
 		struct logStruct log_;
+
 		
 		void initController();
 		void startupProcedure();
@@ -207,6 +220,8 @@ class core
 		void toggleAutoMan();
 		bool confirmGear(uint8_t gear);
 		bool detectGear();
+		bool giveMalfunctionStatus();
+		void clearFaultCodes();
 
 };
 #endif

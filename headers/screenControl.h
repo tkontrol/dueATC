@@ -11,23 +11,15 @@ class screenControl : public U8G2_ST7920_128X64_1_SW_SPI
 	public:
 		screenControl();
 		~screenControl();
-		void drawLiveData2();
+		void advanceTextScrolls();
 		void setBrightness(int brightness);
 		int giveBrightness();
 		void drawOther();	
-//		void setDataPointers(core::dataStruct data);	
+		void scrollText(String *text, uint8_t maxChars, int uiLoopsBetweenCharSrolls);
 
-	private: /*
-		int* engineSpeed_;
-		int* vehicleSpeed_;
-		int* n2Speed_;
-		int* n3Speed_;
-		int* cardanSpeed_;
-		float* n3n2Ratio_;	 */
-
-		int brightness_;
-
-	
+	private:
+		int brightness_;	
+		int scrollCounter_;
 
 };
 #endif

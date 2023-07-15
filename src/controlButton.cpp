@@ -60,7 +60,8 @@ bool controlButton::givePulse()
     return state;
 } 
 
-//returns only one 'true' in the first loop, not in upcoming loops, even if the button is kept pressed
+//returns only ONE 'true' in the first loop, not in upcoming loops, even if the button is kept pressed 
+/*
 bool controlButton::giveSingleShot()
 {
     bool buttonState = !digitalRead(buttonPin_); // inverse because pull-up   
@@ -71,15 +72,66 @@ bool controlButton::giveSingleShot()
         return true;
     }
     return false;
+} */
+
+//returns only ONE 'true' in the first loop, not in upcoming loops, even if the button is kept pressed 
+bool controlButton::giveSingleShot()
+{
+    bool buttonState = !digitalRead(buttonPin_); // inverse because pull-up
+    bool state;
+    
+    if (buttonState && buttonLastState1_)
+    {
+        blockCounter_++;
+    }
+    else if (buttonLastState1_)
+    {
+        blockCounter_ = 0;
+        state = false;
+    }
+    if (blockCounter_ == SINGLECLICK_DETECTION_COUNTS)
+    {
+        state = true;       
+        blockCounter_ = 0;
+    }    
+    buttonLastState1_ = buttonState;
+
+    if (state && !block_)
+    {
+        block_ = true;
+        return true;
+    }
+    return false;
 }
 
 //called in ui-loop before updateMenu()
 void controlButton::releaseBlock()
-{
+{ 
     if (digitalRead(buttonPin_)) // inverse because pull-up -> if button is not pressed, then...
     {
         block_ = false;
+    }  
+    /*
+    bool buttonState = digitalRead(buttonPin_); // inverse because pull-up -> if button is not pressed, then...
+    bool state;
+    
+    if (buttonState && buttonLastState_)
+    {
+        blockCounter_++;
     }
+    else if (buttonLastState_)
+    {
+        buttonCounter_ = 0;
+        state = false;
+    }
+    if (blockCounter_ == BLOCK_COUNTS)
+    {
+        state = true;       
+        blockCounter_ = 0;
+    }
+    
+    buttonLastState_ = buttonState;
+    block_ = state;  */
 }
 
 // return current "raw" state of pin
