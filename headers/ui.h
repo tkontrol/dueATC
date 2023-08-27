@@ -15,12 +15,6 @@
 #define okButtonPin 18
 #define cancelButtonPin 19
 
-#define PswitchPin 25
-#define RswitchPin 23
-
-#define gearPlusPin 50
-#define gearMinusPin 52
-
 
 class ui
 {

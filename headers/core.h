@@ -6,13 +6,13 @@
 #include <../headers/configHandler.h>
 #include <../headers/analogMeasurement.h>
 #include <../headers/TCCcontrol.h>
+#include <../headers/binaryMeasurement.h>
 
+#define PswitchPin 25
+#define RswitchPin 23
 
-// Definitions for speed measurements
-//#define enginePulsesPerRev 2
-//#define driveShaftPulsesPerRev 12
-//#define n2PulsesPerRev 6
-//#define n3PulsesPerRev 6
+#define gearPlusPin 50
+#define gearMinusPin 52
 
 //#define wheelPerimeter 2000 // millimeters
 #define MALFUNCTIONMEMORY_MAX_SIZE 10 // how many malfunctions can be stored
@@ -20,7 +20,6 @@
 #define SOL_12_45 40 //pin for 1-2/4-5 shift solenoid
 #define SOL_23 42 //pin for 2-3 shift solenoid
 #define SOL_34 44 //pin for 3-4 shift solenoid
-
 
 
 class core  
@@ -38,6 +37,11 @@ class core
 		analogMeasurement oilTemp_PN_Meas_;
 		analogMeasurement TPS_Meas_;
 		analogMeasurement MAP_Meas_;
+
+		binaryMeasurement Pswitch_;
+		binaryMeasurement Rswitch_;
+		binaryMeasurement gearPlus_;
+		binaryMeasurement gearMinus_;
 
     	configHandler config_;
 		TCCcontrol TCCcontrol_;
@@ -196,6 +200,7 @@ class core
 		void updateSpeedMeasurements();		
 		void detectDriveType();
 		void updateAnalogMeasurements();
+		void updateLeverPosition();
 		void doShiftLogic();
 		void doAutoShifts();
 		void controlPWMSolenoids();

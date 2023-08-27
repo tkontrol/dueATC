@@ -14,7 +14,8 @@
     "-mthumb",
     "${fileDirname}/menuCollection/menuCollection.cpp",
     "${fileDirname}/analogMeasurement/analogMeasurement.cpp",
-    "${fileDirname}/TCCcontrol/TCCcontrol.cpp"
+    "${fileDirname}/TCCcontrol/TCCcontrol.cpp",
+    "${fileDirname}/binaryMeasurement/binaryMeasurement.cpp"
    ],
    "options": {
     "cwd": "C:/Users/Tuomas/.platformio/packages/toolchain-gccarmnoneeabi/bin"

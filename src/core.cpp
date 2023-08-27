@@ -6,14 +6,18 @@ core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicl
     secondaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999)), //~ 270 km/h
     n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 200, 9999)),
     n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 200, 9999)),
-    oilTemp_PN_Meas_(analogMeasurement(7, 1)),
-    TPS_Meas_(analogMeasurement(6, 10)),
-    MAP_Meas_(analogMeasurement(5, 10)),
+    oilTemp_PN_Meas_(analogMeasurement(7, 1)), // 7 = pin A0
+    TPS_Meas_(analogMeasurement(6, 10)), // 6 = pin A1
+    MAP_Meas_(analogMeasurement(5, 10)), // 5 = pin A2
     config_(configHandler()),
     TCCcontrol_(TCCcontrol()),
     startupCounter_(0),
     currentGear_(2),
-    targetGear_(2)
+    targetGear_(2),
+    Pswitch_(PswitchPin),
+    Rswitch_(RswitchPin),
+    gearPlus_(gearPlusPin),
+    gearMinus_(gearMinusPin)
 {   
 }
 
@@ -25,6 +29,11 @@ core::~core()
 // run once at startup
 void core::initController()
 {  
+    pinMode(PswitchPin, INPUT_PULLUP);
+    pinMode(RswitchPin, INPUT_PULLUP);
+    pinMode(gearPlusPin, INPUT_PULLUP);
+    pinMode(gearMinusPin, INPUT_PULLUP);
+
     config_.initMaps();
     parametersPtr_ = config_.givePtrToConfigurationSet()->parameters; //config_.givePtrToParameterContainer(); // receive pointer to parameters. otherwise than maps container pointer, this is used also by core
     TCCcontrol_.setOutputLimits(0, 100);
@@ -50,6 +59,7 @@ void core::initController()
     malfunctions_.descriptions[9] = "Some third kind of error";
 
  
+    // REMOVE AFTER TESTING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     activateMalfunction(1);
     activateMalfunction(4);
     activateMalfunction(5);
@@ -62,11 +72,10 @@ void core::initController()
     activateMalfunction(7); 
 }
 
-
 void core::startupProcedure()
 {
     applyParameters();
-    lever_ = P;  //// REMOVE AFTER TESTING!!!!!!!!!!!!!!!!!!!!!!
+    //lever_ = P;  //// REMOVE AFTER TESTING!!!!!!!!!!!!!!!!!!!!!!
     shifting_ = false;
 
     while (startupCounter_ < 100)
@@ -74,6 +83,7 @@ void core::startupProcedure()
         updateSpeedMeasurements();
         detectDriveType();
         updateAnalogMeasurements();
+        updateLeverPosition();
         startupCounter_++;
     }
     detectGear();
@@ -90,6 +100,7 @@ void core::applyParameters()
     } 
 }
 
+// applies given parameter
 void core::updateParameter(configHandler::parameter* p)
 {
     if (p->ID == "Start_with_1St_gear")
@@ -103,7 +114,7 @@ void core::updateParameter(configHandler::parameter* p)
     else if (p->ID == "driveShaft_Pulses_Per_Revolution")
     {       
         primaryVehicleSpeedMeas_.setPulsesPerRev(p->data);
-        secondaryVehicleSpeedMeas_.setPulsesPerRev(p->data); // MUISTA VAIHTAA TÄMÄ JOS TOISSIJAISELLA EI OOKKAAN SAMA PULSSIMÄÄRÄ
+        secondaryVehicleSpeedMeas_.setPulsesPerRev(p->data); // REMEMBER TO CHANGE THIS IF SECONDARY VEH SPD SENSOR DOES NOT HAVE SAME PULSE AMOUNT THAN PRIMARY
         driveShaftPulsesPerRev_ = p->data;
     }
     else if (p->ID == "engineSpeed_Pulses_Per_Revolution")
@@ -127,9 +138,13 @@ void core::updateParameter(configHandler::parameter* p)
 
 void core::coreloop() // this is called in 1ms intervals, see main.cpp
 {     
+    gearPlus_.releaseBlock();
+    gearMinus_.releaseBlock();
+
     updateSpeedMeasurements(); //first one in loop, use these values during the loop
     detectDriveType();
     updateAnalogMeasurements();
+    updateLeverPosition();
     makeUpShiftCommand();
     makeDownShiftCommand();
     doShiftLogic();
@@ -147,6 +162,15 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     }
     testcounter_++; 
 
+    if (gearPlus_.giveSingleShot())
+    {
+        Serial.println("plus!!");
+    }
+
+    if (gearMinus_.giveSingleShot())
+    {
+        Serial.println("minus!!");
+    }
 
   //  int luku = TCCcontrol_.givePIOutput();
     
@@ -209,6 +233,7 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
         testcounter_ = 0;
     } */
 
+    /*
     float diff = abs(prevRatio_ - n3n2Ratio_);
     if (0)
     {        
@@ -220,7 +245,7 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
         Serial.print("  diff:");
         Serial.println(diff);
     } 
-    prevRatio_ = n3n2Ratio_;
+    prevRatio_ = n3n2Ratio_; */
 }
 
 String core::readConfFile()
@@ -352,13 +377,42 @@ void core::detectDriveType()
 
 void core::updateAnalogMeasurements()
 {
-    oilTemp_PN_sens_resistance_ = oilTemp_PN_Meas_.giveVoltage(); // ADC->ADC_CDR[7] * 2; // laske jännitteestä resistanssi? 7 = pin A0
-    oilTemp_ = config_.giveOilTempValue(oilTemp_PN_sens_resistance_ ); 
-    TPSVoltage_ = TPS_Meas_.giveVoltage(); //ADC->ADC_CDR[6] / 1023.0 * 3300; // 6 = pin A1
+    const int Rin = 1000; // internal pull-down resistor in a PCB, ohms
+    const int Vcc = 4800; // little bit conservative value for +5v supply, mVs
+
+    int voltage = oilTemp_PN_Meas_.giveVoltage();
+    oilTemp_PN_sens_resistance_ = int((Vcc-voltage) / (float(voltage)/(float(Rin)))); // (Vcc - U) / (U / Rin)
+    oilTemp_ = config_.giveOilTempValue(oilTemp_PN_sens_resistance_); 
+    TPSVoltage_ = TPS_Meas_.giveVoltage(); //ADC->ADC_CDR[6] / 1023.0 * 3300; 
     TPS_ = config_.giveTPSValue(TPSVoltage_);
-    MAPVoltage_ = MAP_Meas_.giveVoltage(); //ADC->ADC_CDR[5] / 1023.0 * 3300; // 5 = pin A2
+    MAPVoltage_ = MAP_Meas_.giveVoltage(); //ADC->ADC_CDR[5] / 1023.0 * 3300; 
     MAP_ = config_.giveMAPValue(MAPVoltage_);
     load_ = int(0.25 * TPS_ + 0.25 * MAP_ + 0.5 * config_.giveEngSpdLoadFactorValue(engineSpeed_));
+}
+
+void core::updateLeverPosition()
+{
+    bool PNbyTempSens = (oilTemp_PN_sens_resistance_ > 5000) ? true: false; // true, if detected P/N - false, if detected R/D
+    bool Psw = Pswitch_.giveState();
+    bool Rsw = Rswitch_.giveState();
+    
+    if (Psw && !Rsw && PNbyTempSens)
+    {
+        lever_ = P;
+    }
+    else if (!Psw && Rsw && !PNbyTempSens)
+    {
+        lever_ = R;
+    }
+    else if (!Psw && !Rsw && !PNbyTempSens)
+    {
+        lever_ = N;
+    }
+    else if(!Psw && !Rsw && PNbyTempSens)
+    {
+        lever_ = D;
+    }
+
 }
 
 void core::doShiftLogic()
