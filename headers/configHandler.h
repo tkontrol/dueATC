@@ -26,6 +26,7 @@ class configHandler
 
 		enum driveType {load, coast};
 
+/*
 		struct dualAxisMap
 		{
 			String ID;
@@ -37,6 +38,20 @@ class configHandler
 			int data[DUAL_AXIS_MAP_MAXIMUM_ROWS][DUAL_AXIS_MAP_MAXIMUM_COLS];
 			int minData;
 			int maxData;
+		}; */
+
+		struct dualAxisMap
+		{
+			String ID;
+			int minData;
+			int maxData;
+			bool readFromSD;
+			uint8_t rows;
+			uint8_t columns;
+			int rowTitles[DUAL_AXIS_MAP_MAXIMUM_ROWS];
+			int columnTitles[DUAL_AXIS_MAP_MAXIMUM_COLS];
+			int data[DUAL_AXIS_MAP_MAXIMUM_ROWS][DUAL_AXIS_MAP_MAXIMUM_COLS];
+
 		};
 
 		struct dualAxisMapContainer
@@ -44,6 +59,8 @@ class configHandler
 			uint8_t size;
 			dualAxisMap* maps;
 		};
+
+		/*
 
 		struct singleAxisMap
 		{
@@ -54,6 +71,17 @@ class configHandler
 			int data[SINGLE_AXIS_MAP_MAXIMUM_COLS];
 			int minData;
 			int maxData;
+		}; */
+
+		struct singleAxisMap
+		{
+			String ID;
+			int minData;
+			int maxData;
+			bool readFromSD;
+			uint8_t columns;
+			int columnTitles[SINGLE_AXIS_MAP_MAXIMUM_COLS];
+			int data[SINGLE_AXIS_MAP_MAXIMUM_COLS];
 		};
 
 		struct singleAxisMapContainer

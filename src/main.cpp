@@ -63,7 +63,6 @@ void uiLoop()
     ui_.printLoopDuration();
   } 
   while( ui_.nextPage() );
-
 }
 
 void adc_setup()
@@ -127,7 +126,7 @@ void setup()
 
   NVIC_SetPriority(TC0_IRQn, 0); // set timer 0 to be highest priority (rpm measurements timer)
   NVIC_SetPriority(TC1_IRQn, 1); // set timer 1 to be second highest priority (core loop)
-  NVIC_SetPriority(TC2_IRQn, 2); // set timer 1 to be second highest priority (UI loop)
+  NVIC_SetPriority(TC2_IRQn, 2); // set timer 2 to be second highest priority (UI loop)
   NVIC_SetPriority(SysTick_IRQn, 3); // make sure SysTick is lower than our timers
   NVIC_SetPriority(ADC_IRQn, 4);
 
@@ -147,5 +146,5 @@ void setup()
 }
 
 void loop()
-{ }
+{}
 

@@ -52,6 +52,11 @@ class core
 		uint8_t currentGear_;
 		uint8_t targetGear_;
 		uint8_t autoModeTargetGear_;
+
+		bool parkSwitchState_;
+		bool reverseSwitchState_;
+		bool gearPlusSwitchState_;
+		bool gearMinusSwitchState_;
 		int engineSpeed_;
 		int vehicleSpeed_;
 		int primaryVehicleSpeed_;
@@ -142,6 +147,10 @@ class core
 			int* vehicleSpeed;
 			int* primaryVehicleSpeed;
 			int* secondaryVehicleSpeed;
+			bool* parkSwitch;
+			bool* reverseSwitch;
+			bool* gearPlusSwitch;
+			bool* gearMinusSwitch;
 			leverPos* leverPosition;
 			shiftingMode* shiftingMod;
 			TCCcontrol::TCCMode* tccMod;
@@ -201,6 +210,7 @@ class core
 		void detectDriveType();
 		void updateAnalogMeasurements();
 		void updateLeverPosition();
+		void readShiftSwitches();
 		void doShiftLogic();
 		void doAutoShifts();
 		void controlPWMSolenoids();

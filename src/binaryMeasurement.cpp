@@ -14,7 +14,7 @@ binaryMeasurement::~binaryMeasurement()
 //return a low-pass-filtered state of the pin
 bool binaryMeasurement::giveState()
 {
-    bool state = !digitalRead(inputPin_); // inverse because pull-up
+    bool state = !digitalRead(inputPin_);
     
     if (state != returnState_)
     {

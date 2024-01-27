@@ -6,9 +6,9 @@ core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicl
     secondaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999)), //~ 270 km/h
     n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 200, 9999)),
     n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 200, 9999)),
-    oilTemp_PN_Meas_(analogMeasurement(7, 1)), // 7 = pin A0
-    TPS_Meas_(analogMeasurement(6, 10)), // 6 = pin A1
-    MAP_Meas_(analogMeasurement(5, 10)), // 5 = pin A2
+    oilTemp_PN_Meas_(analogMeasurement(7, 1)), // 7 = pin A0    
+    MAP_Meas_(analogMeasurement(6, 10)), // 6 = pin A1
+    TPS_Meas_(analogMeasurement(5, 10)), // 5 = pin A2
     config_(configHandler()),
     TCCcontrol_(TCCcontrol()),
     startupCounter_(0),
@@ -145,6 +145,7 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     detectDriveType();
     updateAnalogMeasurements();
     updateLeverPosition();
+    readShiftSwitches();
     makeUpShiftCommand();
     makeDownShiftCommand();
     doShiftLogic();
@@ -161,16 +162,17 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
         notificationTimerCounter_++;
     }
     testcounter_++; 
-
-    if (gearPlus_.giveSingleShot())
+/*
+    if (gearPlusSwitchState_)
     {
         Serial.println("plus!!");
     }
 
-    if (gearMinus_.giveSingleShot())
+    if (gearMinusSwitchState_)
     {
         Serial.println("minus!!");
     }
+*/
 
   //  int luku = TCCcontrol_.givePIOutput();
     
@@ -332,6 +334,7 @@ void core::updateSpeedMeasurements()
     engineSpeed_ = engineSpeedMeas_.giveRPM();
     n2Speed_ = n2SpeedMeas_.giveRPM();
     n3Speed_ = n3SpeedMeas_.giveRPM();
+    //Serial.println(n3SpeedMeas_.giveRPM());
     n3n2Ratio_ = float(n3Speed_) / float(n2Speed_);
     
 
@@ -383,9 +386,9 @@ void core::updateAnalogMeasurements()
     int voltage = oilTemp_PN_Meas_.giveVoltage();
     oilTemp_PN_sens_resistance_ = int((Vcc-voltage) / (float(voltage)/(float(Rin)))); // (Vcc - U) / (U / Rin)
     oilTemp_ = config_.giveOilTempValue(oilTemp_PN_sens_resistance_); 
-    TPSVoltage_ = TPS_Meas_.giveVoltage(); //ADC->ADC_CDR[6] / 1023.0 * 3300; 
+    TPSVoltage_ = TPS_Meas_.giveVoltage() * 2.5; //factor 2.5 because voltage-divider on PCB //ADC->ADC_CDR[6] / 1023.0 * 3300; 
     TPS_ = config_.giveTPSValue(TPSVoltage_);
-    MAPVoltage_ = MAP_Meas_.giveVoltage(); //ADC->ADC_CDR[5] / 1023.0 * 3300; 
+    MAPVoltage_ = MAP_Meas_.giveVoltage() * 2.5; //factor 2.5 because voltage-divider on PCB //ADC->ADC_CDR[5] / 1023.0 * 3300; 
     MAP_ = config_.giveMAPValue(MAPVoltage_);
     load_ = int(0.25 * TPS_ + 0.25 * MAP_ + 0.5 * config_.giveEngSpdLoadFactorValue(engineSpeed_));
 }
@@ -393,26 +396,34 @@ void core::updateAnalogMeasurements()
 void core::updateLeverPosition()
 {
     bool PNbyTempSens = (oilTemp_PN_sens_resistance_ > 5000) ? true: false; // true, if detected P/N - false, if detected R/D
-    bool Psw = Pswitch_.giveState();
-    bool Rsw = Rswitch_.giveState();
+    parkSwitchState_ = Pswitch_.giveState();
+    reverseSwitchState_ = Rswitch_.giveState();
     
-    if (Psw && !Rsw && PNbyTempSens)
+    if (parkSwitchState_ && !reverseSwitchState_ && PNbyTempSens)
     {
         lever_ = P;
     }
-    else if (!Psw && Rsw && !PNbyTempSens)
+    else if (!parkSwitchState_ && reverseSwitchState_ && !PNbyTempSens)
     {
         lever_ = R;
     }
-    else if (!Psw && !Rsw && !PNbyTempSens)
+    else if (!parkSwitchState_ && !reverseSwitchState_ && !PNbyTempSens)
     {
         lever_ = N;
     }
-    else if(!Psw && !Rsw && PNbyTempSens)
+    else if(!parkSwitchState_ && !reverseSwitchState_ && PNbyTempSens)
     {
         lever_ = D;
     }
+}
 
+void core::readShiftSwitches()
+{
+    gearPlusSwitchState_ = gearPlus_.giveState();
+    gearMinusSwitchState_ = gearMinus_.giveState();
+
+    if (gearPlusSwitchState_) {gearUpRequest();}
+    if (gearMinusSwitchState_) {gearDownRequest();}
 }
 
 void core::doShiftLogic()
@@ -704,7 +715,7 @@ void core::updateLog()
 
 void core::gearUpRequest()
 {
-    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R) && !malfunctions_.activeMalfunctions)
+    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R)) // && !malfunctions_.activeMalfunctions)
     {
         gearUpReq_ = true;
     }
@@ -712,7 +723,7 @@ void core::gearUpRequest()
 
 void core::gearDownRequest()
 {
-    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R) && !malfunctions_.activeMalfunctions)
+    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R)) // && !malfunctions_.activeMalfunctions)
     {  
         gearDownReq_ = true;
     }
@@ -993,6 +1004,12 @@ struct core::dataStruct core::giveDataPointers()
     data_.vehicleSpeed = &vehicleSpeed_;
     data_.primaryVehicleSpeed = &primaryVehicleSpeed_;
     data_.secondaryVehicleSpeed = &secondaryVehicleSpeed_;
+     
+    data_.parkSwitch = &parkSwitchState_;
+    data_.reverseSwitch = &reverseSwitchState_;
+    data_.gearPlusSwitch = &gearPlusSwitchState_;
+    data_.gearMinusSwitch = &gearMinusSwitchState_; 
+    
     data_.leverPosition = &lever_;
     data_.shiftingMod = &shiftingMode_;
     data_.tccMod = &tccMode_;

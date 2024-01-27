@@ -8,12 +8,12 @@
 #include "../headers/configHandler.h"
 
 #define autoModeSwitchPin 28
-#define upButtonPin 14
-#define downButtonPin 15
-#define leftButtonPin 16
-#define rightButtonPin 17
-#define okButtonPin 18
-#define cancelButtonPin 19
+#define upButtonPin 17
+#define downButtonPin 16
+#define leftButtonPin 15
+#define rightButtonPin 14
+#define okButtonPin 19
+#define cancelButtonPin 18
 
 
 class ui
@@ -113,10 +113,11 @@ class ui
 		menuCollection settingsMenu_ = {sizeof(settingsM_)/sizeof(settingsM_[0]), 0, &*settingsM_};	
 
 		// Live data menu
-		menuObj liveDatamM_[5] = {
+		menuObj liveDatamM_[6] = {
 			{"RPM measurements", &ui::showLiveData1},
 			{"RPMs & Ratios", &ui::showLiveData2},
 			{"Analog measurements", &ui::showLiveData3},
+			{"Binary measurements", &ui::showLiveData4},
 			{"Data Plotter", &ui::goToDataPlotterMenu},
 			{"Back to MainMenu", &ui::goToMainMenu}
 		}; 
@@ -231,9 +232,11 @@ class ui
 		bool showLiveData1();
 		bool showLiveData2();
 		bool showLiveData3();
+		bool showLiveData4();
 		void drawLiveData1();
 		void drawLiveData2();
 		void drawLiveData3();
+		void drawLiveData4();
 		void adjustPlotTime();
 		bool plotEngineSpeed();
 		bool plotVehicleSpeed();

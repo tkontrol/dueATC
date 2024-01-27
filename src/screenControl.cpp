@@ -20,7 +20,7 @@ void screenControl::drawOther()
 void screenControl::setBrightness(int brightness) {
   brightness_ = brightness;
   int pwmValue = 0;
-  pwmValue = float(brightness) * 1.7; // set max brightness to 170 PWM = 3,33v = max !!!
+  pwmValue = float(brightness) * 1,7; // set max brightness to 170 PWM = 3,33v = max !!!
   analogWrite(7, pwmValue);
 }
 

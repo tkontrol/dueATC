@@ -53,8 +53,8 @@ void speedMeasurement::useLowPass()
 // return RPM
 int speedMeasurement::giveRPM()
 {
-    useLowPass(); // comment this if you want to disable low pass filter
-    // periodLength_ = mem_; // uncomment this if you want to disable low pass filter
+    //useLowPass(); // comment this if you want to disable low pass filter
+     periodLength_ = mem_; // uncomment this if you want to disable low pass filter
     int rpm = calcConst_ / periodLength_;
     if (rpm < minRPM_ || counter_ > longestPeriodToAccept_)
     {

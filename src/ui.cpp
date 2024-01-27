@@ -107,7 +107,7 @@ void ui::initUI()
   singleAxisMapsPtr_ = core_.givePtrToConfigurationSet()->singleAxisMaps;
   screen_.begin();
   screen_.setBrightness(100);
-  analogWrite(12, 255); // V0 input to screen
+  analogWrite(12, 240); // VO input to screen, CONTRAST
   currentMenu_ = &mainMenu_;
   menuFuncExecuting_ = true; // start at MainScreen, because it is the first in MainMenu (which is at index 0 = default at startup)
 
@@ -535,6 +535,12 @@ bool ui::showLiveData3()
   return cancelButton_.giveSingleShot();
 }
 
+bool ui::showLiveData4()
+{
+  drawLiveData4();    
+  return cancelButton_.giveSingleShot();
+}
+
 void ui::drawLiveData1()
 {
   const int columnXPos = 100;	
@@ -654,6 +660,47 @@ void ui::drawLiveData3()
   screen_.drawStr(0, firstLine+lineGap*5, "Oiltemp/PN sens ohm:");
   screen_.setCursor(columnXPos, firstLine+lineGap*5);
   screen_.print(*dataPtrs_.oilTemp_PN_sens_res);   
+}
+
+void ui::drawLiveData4()
+{
+  const int columnXPos = 103;	
+  const int firstLine = 18;
+  const int lineGap = 9;
+	
+  screen_.setFont(u8g_font_5x8);
+  screen_.drawStr(35, firstLine-9, "LIVE DATA 3");
+  screen_.drawLine(0, firstLine-8, 128, firstLine-8);
+
+  screen_.drawStr(0, firstLine, "Park switch:");
+  screen_.setCursor(columnXPos, firstLine);
+  screen_.print(*dataPtrs_.parkSwitch);
+  screen_.drawLine(0, firstLine+1, 128, firstLine+1);
+
+  screen_.drawStr(0, firstLine+lineGap, "Reverse switch:");
+  screen_.setCursor(columnXPos, firstLine+lineGap);
+  screen_.print(*dataPtrs_.reverseSwitch);  
+  screen_.drawLine(0, firstLine+lineGap+1, 128, firstLine+lineGap+1);
+  
+  
+  screen_.drawStr(0, firstLine+lineGap*2, "Gear + switch:");
+  screen_.setCursor(columnXPos, firstLine+lineGap*2);
+  screen_.print(*dataPtrs_.gearPlusSwitch);  
+  screen_.drawLine(0, firstLine+lineGap*2+1, 128, firstLine+lineGap*2+1);
+  
+  screen_.drawStr(0, firstLine+lineGap*3, "Gear - switch:");
+  screen_.setCursor(columnXPos, firstLine+lineGap*3);
+  screen_.print(*dataPtrs_.gearMinusSwitch);  
+  screen_.drawLine(0, firstLine+lineGap*3+1, 128, firstLine+lineGap*3+1);
+   /*
+  screen_.drawStr(0, firstLine+lineGap*4, "Oil temp C:");
+  screen_.setCursor(columnXPos, firstLine+lineGap*4);
+  screen_.print(*dataPtrs_.oilTemp);  
+  screen_.drawLine(0, firstLine+lineGap*4+1, 128, firstLine+lineGap*4+1);
+
+  screen_.drawStr(0, firstLine+lineGap*5, "Oiltemp/PN sens ohm:");
+  screen_.setCursor(columnXPos, firstLine+lineGap*5);
+  screen_.print(*dataPtrs_.oilTemp_PN_sens_res);   */
 }
 
 void ui::adjustPlotTime()

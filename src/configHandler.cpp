@@ -92,7 +92,9 @@ void configHandler::setObjectIDs() // sets ID's for every object as they exist i
     SPC_3to2_coast_ = {"SPC_3to2_coast", 0, 100};
     SPC_2to1_coast_ = {"SPC_2to1_coast", 0, 100};
 
-    shiftTimeTargetMap_.ID = String("Shift_time_target_map"); shiftTimeTargetMap_.minData = 200; shiftTimeTargetMap_.maxData = 2000;
+    shiftTimeTargetMap_ = {"Shift_time_target_map", 200, 2000};
+
+    //shiftTimeTargetMap_.ID = String("Shift_time_target_map"); shiftTimeTargetMap_.minData = 200; shiftTimeTargetMap_.maxData = 2000;
     engSpdLoadFactorMap_.ID = String("Eng_spd_load_factor"); engSpdLoadFactorMap_.minData = 0; engSpdLoadFactorMap_.maxData = 100;
     MAPLinearizationMap_.ID = String("MAP_linearization_map"); MAPLinearizationMap_.minData = 0; MAPLinearizationMap_.maxData = 5000;
     TPSLinearizationMap_.ID = String("TPS_linearization_map"); TPSLinearizationMap_.minData = 0; TPSLinearizationMap_.maxData = 5000;
