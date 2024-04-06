@@ -345,12 +345,12 @@ void core::readShiftSwitches()
 void core::doShiftLogic()
 {  
 
-    Serial.print("  downComm: ");
-    Serial.print(gearDownComm_);
-    Serial.print("  upComm: ");
-    Serial.print(gearUpComm_);
-    Serial.print("  shifting: ");
-    Serial.println(shifting_);
+    //Serial.print("  downComm: ");
+    //Serial.print(gearDownComm_);
+    //Serial.print("  upComm: ");
+    //Serial.print(gearUpComm_);
+    //Serial.print("  shifting: ");
+    //Serial.println(shifting_);
     if (shiftingMode_ == AUT && lever_ == D) // lever == D is included only to this and the if-condition below and not the entire function,
     {                                       // to make sure the shift is finalized properly, no matter if driver sets the lever off the D (or R, P) during the shift
         doAutoShifts(); // gearUpReq and gearDownReq are set in doAutoShifts()-function if necessary, and those are requests handled below, same way as if they were given in manual mode.

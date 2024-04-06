@@ -74,15 +74,16 @@ class ui
 
  		struct menuObj
 		{
-			char title[30];
-			itemf function;
+			char title[30]; // title to show
+			itemf function; // pointer to function to run in a loop when menuObj is active
 		};
  
 		struct menuCollection
 		{
-			uint8_t size;
-			uint8_t selection;
-			struct menuObj* menuObj;
+			uint8_t size; // how many menuObjs menu contains
+			uint8_t selection; // which menuObj is selected
+			struct menuObj* menuObj; // pointer to struct of menuObjs
+			menuCollection* hostMenu; // pointer to host menu (where to return when exiting menu)
 		}; 
 
 		menuCollection* currentMenu_;
@@ -102,29 +103,27 @@ class ui
 		menuCollection mainMenu_ = {sizeof(mainM_)/sizeof(mainM_[0]), 0, &*mainM_};
 
 		// Settings menu
-		menuObj settingsM_[6] = {
+		menuObj settingsM_[5] = {
 			{"Dual-axis maps", &ui::goToDualAxisMapEditorMenu},
 			{"Single-axis maps", &ui::goToSingleAxisMapEditorMenu},
 			{"Parameters", &ui::showParamEditor},
 			{"Button tests", &ui::buttonTests},
-			{"SD card actions", &ui::goToSDMenu},
-			{"Back to MainMenu", &ui::goToMainMenu}
+			{"SD card actions", &ui::goToSDMenu}
 		}; 
-		menuCollection settingsMenu_ = {sizeof(settingsM_)/sizeof(settingsM_[0]), 0, &*settingsM_};	
+		menuCollection settingsMenu_ = {sizeof(settingsM_)/sizeof(settingsM_[0]), 0, &*settingsM_, &mainMenu_};	
 
 		// Live data menu
-		menuObj liveDatamM_[6] = {
+		menuObj liveDatamM_[5] = {
 			{"RPM measurements", &ui::showLiveData1},
 			{"RPMs & Ratios", &ui::showLiveData2},
 			{"Analog measurements", &ui::showLiveData3},
 			{"Binary measurements", &ui::showLiveData4},
-			{"Data Plotter", &ui::goToDataPlotterMenu},
-			{"Back to MainMenu", &ui::goToMainMenu}
+			{"Data Plotter", &ui::goToDataPlotterMenu}
 		}; 
-		menuCollection liveDataMenu_ = {sizeof(liveDatamM_)/sizeof(liveDatamM_[0]), 0, &*liveDatamM_};
+		menuCollection liveDataMenu_ = {sizeof(liveDatamM_)/sizeof(liveDatamM_[0]), 0, &*liveDatamM_, &mainMenu_};
 
 		// Data plotter menu
-		menuObj dataPlottermM_[9] = {
+		menuObj dataPlottermM_[8] = {
 			{"Engine speed", &ui::plotEngineSpeed},
 			{"Vehicle speed", &ui::plotVehicleSpeed},
 			{"Prim&Sec veh.spd", &ui::plotPrimAndSecSpds},
@@ -132,31 +131,28 @@ class ui
 			{"n3/n2 ratio", &ui::plotn2n3Ratio},
 			{"Transmission ratio", &ui::plotTransmissionRatio},
 			{"TC slip & control", &ui::plotTCSlipAndCtrl},
-			{"Oil temp", &ui::plotOilTemp},
-			{"Back to LiveData", &ui::goToLiveDataMenu}
+			{"Oil temp", &ui::plotOilTemp}
 		}; 
-		menuCollection dataPlotterMenu_ = {sizeof(dataPlottermM_)/sizeof(dataPlottermM_[0]), 0, &*dataPlottermM_};
+		menuCollection dataPlotterMenu_ = {sizeof(dataPlottermM_)/sizeof(dataPlottermM_[0]), 0, &*dataPlottermM_, &liveDataMenu_};
 
 		// Map editor menu
-		menuObj mapEditorM_[4] = {
+		menuObj mapEditorM_[3] = {
 			{"AutoMode gear", &ui::editAutoModeWantedGearMap},
 			{"MPC maps", &ui::goToMPCMapMenu},
-			{"SPC maps", &ui::goToSPCMapMenu},
-			{"Back to settings", &ui::goToSettingsMenu}
+			{"SPC maps", &ui::goToSPCMapMenu}
 		}; 
-		menuCollection mapEditorMenu_ = {sizeof(mapEditorM_)/sizeof(mapEditorM_[0]), 0, &*mapEditorM_};
+		menuCollection mapEditorMenu_ = {sizeof(mapEditorM_)/sizeof(mapEditorM_[0]), 0, &*mapEditorM_, &settingsMenu_};
 
 		// SD Card menu
-		menuObj SDM_[4] = {
+		menuObj SDM_[3] = {
 			{"Re-read config file", &ui::readConfigFile},
 			{"Write RAM to file", &ui::overWriteConfigFile},
-			{"Restore def. conf", &ui::restoreDefaultConfigFile},
-			{"Back to settings", &ui::goToSettingsMenu}
+			{"Restore def. conf", &ui::restoreDefaultConfigFile}
 		}; 
-		menuCollection SDMenu_ = {sizeof(SDM_)/sizeof(SDM_[0]), 0, &*SDM_};
+		menuCollection SDMenu_ = {sizeof(SDM_)/sizeof(SDM_[0]), 0, &*SDM_, &settingsMenu_};
 
 		// MPC maps editor menu
-		menuObj MPCM_[18] = {
+		menuObj MPCM_[17] = {
 			{"MPC normal", &ui::editMPCNormalDriveMap},
 			{"load, 1->2", &ui::editMPC1to2loadMap},
 			{"load, 2->3", &ui::editMPC2to3loadMap},
@@ -173,13 +169,12 @@ class ui
 			{"coast, 5->4", &ui::editMPC5to4coastMap},
 			{"coast, 4->3", &ui::editMPC4to3coastMap},
 			{"coast, 3->2", &ui::editMPC3to2coastMap},
-			{"coast, 2->1", &ui::editMPC2to1coastMap},
-			{"Back to editor menu", &ui::goToDualAxisMapEditorMenu}
+			{"coast, 2->1", &ui::editMPC2to1coastMap}
 		}; 
-		menuCollection MPCMenu_ = {sizeof(MPCM_)/sizeof(MPCM_[0]), 0, &*MPCM_};
+		menuCollection MPCMenu_ = {sizeof(MPCM_)/sizeof(MPCM_[0]), 0, &*MPCM_, &mapEditorMenu_};
 
 		// SPC maps editor menu
-		menuObj SPCM_[17] = {
+		menuObj SPCM_[16] = {
 			{"load, 1->2", &ui::editSPC1to2loadMap},
 			{"load, 2->3", &ui::editSPC2to3loadMap},
 			{"load, 3->4", &ui::editSPC3to4loadMap},
@@ -195,10 +190,9 @@ class ui
 			{"coast, 5->4", &ui::editSPC5to4coastMap},
 			{"coast, 4->3", &ui::editSPC4to3coastMap},
 			{"coast, 3->2", &ui::editSPC3to2coastMap},
-			{"coast, 2->1", &ui::editSPC2to1coastMap},
-			{"Back to editor menu", &ui::goToDualAxisMapEditorMenu}
+			{"coast, 2->1", &ui::editSPC2to1coastMap}
 		}; 
-		menuCollection SPCMenu_  = {sizeof(SPCM_)/sizeof(SPCM_[0]), 0, &*SPCM_};
+		menuCollection SPCMenu_  = {sizeof(SPCM_)/sizeof(SPCM_[0]), 0, &*SPCM_, &mapEditorMenu_};
 
 		/*
 

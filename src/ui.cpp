@@ -311,11 +311,12 @@ struct configHandler::singleAxisMap* ui::givePtrToSingleAxisMap(String name)
 void ui::updateMenu()
 {
   static uint8_t executableFunctionNumber = 0;
-  if (!menuFuncExecuting_)
+  if (!menuFuncExecuting_) // if executing flag is not set, print menu
   {
     bool up = upButton_.givePulse();
     bool down = downButton_.givePulse();
     bool ok = okButton_.givePulse(); // this must be givePulse, not singleShot, because singleShot will prevent returning true later in a loop if used in a function
+    bool cancel = cancelButton_.giveSingleShot();
 
     if (down)
     {
@@ -344,7 +345,11 @@ void ui::updateMenu()
       menuFuncExecuting_ = true; // enable the class-wide execution flag
       executableFunctionNumber = currentMenu_->selection; // set the selected menu object to be executable
     }
-      drawMenu(currentMenu_);
+    else if (cancel && currentMenu_->hostMenu != NULL)
+    {      
+      currentMenu_ = currentMenu_->hostMenu; // return to host menu when pressing cancel      
+    }
+    drawMenu(currentMenu_);
   }
   else if ((this->*currentMenu_->menuObj[executableFunctionNumber].function)()) // if execution flag is set, execute the selected item until it returns true (cancel pressed)
   {
