@@ -20,7 +20,7 @@ class binaryMeasurement
 		~binaryMeasurement();
 
 		bool giveState();	
-		bool giveSingleShot();
+		//bool giveSingleShot();
 		void releaseBlock();
 
 };

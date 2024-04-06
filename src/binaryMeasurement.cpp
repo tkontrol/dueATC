@@ -37,7 +37,7 @@ bool binaryMeasurement::giveState()
     }
     return returnState_;
 }
-
+ /*
 bool binaryMeasurement::giveSingleShot()
 {
     bool inputState = !digitalRead(inputPin_); // inverse because pull-up
@@ -66,7 +66,7 @@ bool binaryMeasurement::giveSingleShot()
     }
     return false;
 }
-
+*/
 void binaryMeasurement::releaseBlock()
 { 
     if (digitalRead(inputPin_)) // inverse because pull-up -> if button is not pressed, then...
@@ -74,3 +74,4 @@ void binaryMeasurement::releaseBlock()
         block_ = false;
     }  
 }
+

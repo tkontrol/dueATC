@@ -27,7 +27,7 @@ void speedMeasurement::increaseCounter()
 }
 
 // run on every rising edge
-void speedMeasurement::calcPeriodLength() // run on rising edge of signal, update the variable
+void speedMeasurement::calcPeriodLength()
 {    
     mem_ = counter_;
     counter_ = 0;

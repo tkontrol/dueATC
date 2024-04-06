@@ -22,42 +22,6 @@ void configHandler::setObjectIDs() // sets ID's for every object as they exist i
     Shift_solenoid_time_map_.ID = String("Shift_solenoid_time_map"); Shift_solenoid_time_map_.minData = 200; Shift_solenoid_time_map_.maxData = 2500;
     MPC_regularDrive_.ID = String("MPC_normalDrive"); MPC_regularDrive_.minData = 0; MPC_regularDrive_.maxData = 100;
 
-  /*
-
-    MPC_1to2_load_.ID = String("MPC_1to2_load"); MPC_1to2_load_.minData = 0; MPC_1to2_load_.maxData = 100;
-    MPC_2to3_load_.ID = String("MPC_2to3_load"); MPC_2to3_load_.minData = 0; MPC_2to3_load_.maxData = 100;
-    MPC_3to4_load_.ID = String("MPC_3to4_load"); MPC_3to4_load_.minData = 0; MPC_3to4_load_.maxData = 100;
-    MPC_4to5_load_.ID = String("MPC_4to5_load"); MPC_4to5_load_.minData = 0; MPC_4to5_load_.maxData = 100;
-    MPC_5to4_load_.ID = String("MPC_5to4_load"); MPC_5to4_load_.minData = 0; MPC_5to4_load_.maxData = 100;
-    MPC_4to3_load_.ID = String("MPC_4to3_load"); MPC_4to3_load_.minData = 0; MPC_4to3_load_.maxData = 100;
-    MPC_3to2_load_.ID = String("MPC_3to2_load"); MPC_3to2_load_.minData = 0; MPC_3to2_load_.maxData = 100;
-    MPC_2to1_load_.ID = String("MPC_2to1_load"); MPC_2to1_load_.minData = 0; MPC_2to1_load_.maxData = 100;
-    MPC_1to2_coast_.ID = String("MPC_1to2_coast"); MPC_1to2_coast_.minData = 0; MPC_1to2_coast_.maxData = 100;
-    MPC_2to3_coast_.ID = String("MPC_2to3_coast"); MPC_2to3_coast_.minData = 0; MPC_2to3_coast_.maxData = 100;
-    MPC_3to4_coast_.ID = String("MPC_3to4_coast"); MPC_3to4_coast_.minData = 0; MPC_3to4_coast_.maxData = 100;
-    MPC_4to5_coast_.ID = String("MPC_4to5_coast"); MPC_4to5_coast_.minData = 0; MPC_4to5_coast_.maxData = 100;
-    MPC_5to4_coast_.ID = String("MPC_5to4_coast"); MPC_5to4_coast_.minData = 0; MPC_5to4_coast_.maxData = 100;
-    MPC_4to3_coast_.ID = String("MPC_4to3_coast"); MPC_4to3_coast_.minData = 0; MPC_4to3_coast_.maxData = 100;
-    MPC_3to2_coast_.ID = String("MPC_3to2_coast"); MPC_3to2_coast_.minData = 0; MPC_3to2_coast_.maxData = 100;
-    MPC_2to1_coast_.ID = String("MPC_2to1_coast"); MPC_2to1_coast_.minData = 0; MPC_2to1_coast_.maxData = 100;
-
-    SPC_1to2_load_.ID = String("SPC_1to2_load"); SPC_1to2_load_.minData = 0; SPC_1to2_load_.maxData = 100;
-    SPC_2to3_load_.ID = String("SPC_2to3_load"); SPC_2to3_load_.minData = 0; SPC_2to3_load_.maxData = 100;
-    SPC_3to4_load_.ID = String("SPC_3to4_load"); SPC_3to4_load_.minData = 0; SPC_3to4_load_.maxData = 100;
-    SPC_4to5_load_.ID = String("SPC_4to5_load"); SPC_4to5_load_.minData = 0; SPC_4to5_load_.maxData = 100;
-    SPC_5to4_load_.ID = String("SPC_5to4_load"); SPC_5to4_load_.minData = 0; SPC_5to4_load_.maxData = 100;
-    SPC_4to3_load_.ID = String("SPC_4to3_load"); SPC_4to3_load_.minData = 0; SPC_4to3_load_.maxData = 100;
-    SPC_3to2_load_.ID = String("SPC_3to2_load"); SPC_3to2_load_.minData = 0; SPC_3to2_load_.maxData = 100;
-    SPC_2to1_load_.ID = String("SPC_2to1_load"); SPC_2to1_load_.minData = 0; SPC_2to1_load_.maxData = 100;
-    SPC_1to2_coast_.ID = String("SPC_1to2_coast"); SPC_1to2_coast_.minData = 0; SPC_1to2_coast_.maxData = 100;
-    SPC_2to3_coast_.ID = String("SPC_2to3_coast"); SPC_2to3_coast_.minData = 0; SPC_2to3_coast_.maxData = 100;
-    SPC_3to4_coast_.ID = String("SPC_3to4_coast"); SPC_3to4_coast_.minData = 0; SPC_3to4_coast_.maxData = 100;
-    SPC_4to5_coast_.ID = String("SPC_4to5_coast"); SPC_4to5_coast_.minData = 0; SPC_4to5_coast_.maxData = 100;
-    SPC_5to4_coast_.ID = String("SPC_5to4_coast"); SPC_5to4_coast_.minData = 0; SPC_5to4_coast_.maxData = 100;
-    SPC_4to3_coast_.ID = String("SPC_4to3_coast"); SPC_4to3_coast_.minData = 0; SPC_4to3_coast_.maxData = 100;
-    SPC_3to2_coast_.ID = String("SPC_3to2_coast"); SPC_3to2_coast_.minData = 0; SPC_3to2_coast_.maxData = 100;
-    SPC_2to1_coast_.ID = String("SPC_2to1_coast"); SPC_2to1_coast_.minData = 0; SPC_2to1_coast_.maxData = 100;  */
-
     MPC_1to2_load_ = {"MPC_1to2_load", 0, 100};
     MPC_2to3_load_ = {"MPC_2to3_load", 0, 100};
     MPC_3to4_load_ = {"MPC_3to4_load", 0, 100};

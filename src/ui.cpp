@@ -548,7 +548,7 @@ void ui::drawLiveData1()
   const int lineGap = 9;
 	
   screen_.setFont(u8g_font_5x8);
-  screen_.drawStr(35, firstLine-9, "LIVE DATA 1");
+  screen_.drawStr(35, firstLine-9, "LIVE DATA PAGE 1");
   screen_.drawLine(0, firstLine-8, 128, firstLine-8);
   screen_.drawStr(0, firstLine, "Eng spd, rpm:");
   screen_.setCursor(columnXPos, firstLine);
@@ -589,7 +589,7 @@ void ui::drawLiveData2()
   int cpuTemp = int((((ADC->ADC_CDR[15]/1023.0)*3300)-800)/2.65+27); // see SAM3X datasheet pg 1410, calculating CPU temp
 	
   screen_.setFont(u8g_font_5x8);
-  screen_.drawStr(35, firstLine-9, "LIVE DATA 2");
+  screen_.drawStr(35, firstLine-9, "LIVE DATA PAGE 2");
   screen_.drawLine(0, firstLine-8, 128, firstLine-8);
 
   screen_.drawStr(0, firstLine, "N3/N2 ratio:");
@@ -629,7 +629,7 @@ void ui::drawLiveData3()
   const int lineGap = 9;
 	
   screen_.setFont(u8g_font_5x8);
-  screen_.drawStr(35, firstLine-9, "LIVE DATA 3");
+  screen_.drawStr(35, firstLine-9, "LIVE DATA PAGE 3");
   screen_.drawLine(0, firstLine-8, 128, firstLine-8);
 
   screen_.drawStr(0, firstLine, "TPS %:");
@@ -669,7 +669,7 @@ void ui::drawLiveData4()
   const int lineGap = 9;
 	
   screen_.setFont(u8g_font_5x8);
-  screen_.drawStr(35, firstLine-9, "LIVE DATA 3");
+  screen_.drawStr(35, firstLine-9, "LIVE DATA PAGE 4");
   screen_.drawLine(0, firstLine-8, 128, firstLine-8);
 
   screen_.drawStr(0, firstLine, "Park switch:");
@@ -692,12 +692,12 @@ void ui::drawLiveData4()
   screen_.setCursor(columnXPos, firstLine+lineGap*3);
   screen_.print(*dataPtrs_.gearMinusSwitch);  
   screen_.drawLine(0, firstLine+lineGap*3+1, 128, firstLine+lineGap*3+1);
-   /*
-  screen_.drawStr(0, firstLine+lineGap*4, "Oil temp C:");
+   
+  screen_.drawStr(0, firstLine+lineGap*4, "Brake pedal switch:");
   screen_.setCursor(columnXPos, firstLine+lineGap*4);
-  screen_.print(*dataPtrs_.oilTemp);  
+  screen_.print(*dataPtrs_.brakePedalSwitch);  
   screen_.drawLine(0, firstLine+lineGap*4+1, 128, firstLine+lineGap*4+1);
-
+  /*
   screen_.drawStr(0, firstLine+lineGap*5, "Oiltemp/PN sens ohm:");
   screen_.setCursor(columnXPos, firstLine+lineGap*5);
   screen_.print(*dataPtrs_.oilTemp_PN_sens_res);   */

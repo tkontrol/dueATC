@@ -8,13 +8,12 @@
 #include <../headers/TCCcontrol.h>
 #include <../headers/binaryMeasurement.h>
 
+#define brakePedalSwitchPin 27
 #define PswitchPin 25
 #define RswitchPin 23
-
 #define gearPlusPin 50
 #define gearMinusPin 52
 
-//#define wheelPerimeter 2000 // millimeters
 #define MALFUNCTIONMEMORY_MAX_SIZE 10 // how many malfunctions can be stored
 #define LOGGER_MAX_SIZE 500 // max cells in log struct
 #define SOL_12_45 40 //pin for 1-2/4-5 shift solenoid
@@ -38,6 +37,7 @@ class core
 		analogMeasurement TPS_Meas_;
 		analogMeasurement MAP_Meas_;
 
+		binaryMeasurement brakePedal_;
 		binaryMeasurement Pswitch_;
 		binaryMeasurement Rswitch_;
 		binaryMeasurement gearPlus_;
@@ -53,6 +53,7 @@ class core
 		uint8_t targetGear_;
 		uint8_t autoModeTargetGear_;
 
+		bool brakePedalSwitchState_;
 		bool parkSwitchState_;
 		bool reverseSwitchState_;
 		bool gearPlusSwitchState_;
@@ -147,6 +148,7 @@ class core
 			int* vehicleSpeed;
 			int* primaryVehicleSpeed;
 			int* secondaryVehicleSpeed;
+			bool* brakePedalSwitch;
 			bool* parkSwitch;
 			bool* reverseSwitch;
 			bool* gearPlusSwitch;
