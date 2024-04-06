@@ -23,8 +23,6 @@ void ui::increaseSpeedMeasCounters()
 {
   core_.increaseSpeedMeasCounters();
   clock_= clock_ + 10;
-
-
 }
 
 void ui::engineSpeedMeas()

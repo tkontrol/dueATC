@@ -26,20 +26,6 @@ class configHandler
 
 		enum driveType {load, coast};
 
-/*
-		struct dualAxisMap
-		{
-			String ID;
-			bool readFromSD;
-			uint8_t rows;
-			uint8_t columns;
-			int rowTitles[DUAL_AXIS_MAP_MAXIMUM_ROWS];
-			int columnTitles[DUAL_AXIS_MAP_MAXIMUM_COLS];
-			int data[DUAL_AXIS_MAP_MAXIMUM_ROWS][DUAL_AXIS_MAP_MAXIMUM_COLS];
-			int minData;
-			int maxData;
-		}; */
-
 		struct dualAxisMap
 		{
 			String ID;
@@ -51,7 +37,6 @@ class configHandler
 			int rowTitles[DUAL_AXIS_MAP_MAXIMUM_ROWS];
 			int columnTitles[DUAL_AXIS_MAP_MAXIMUM_COLS];
 			int data[DUAL_AXIS_MAP_MAXIMUM_ROWS][DUAL_AXIS_MAP_MAXIMUM_COLS];
-
 		};
 
 		struct dualAxisMapContainer
@@ -59,19 +44,6 @@ class configHandler
 			uint8_t size;
 			dualAxisMap* maps;
 		};
-
-		/*
-
-		struct singleAxisMap
-		{
-			String ID;
-			bool readFromSD;
-			uint8_t columns;
-			int columnTitles[SINGLE_AXIS_MAP_MAXIMUM_COLS];
-			int data[SINGLE_AXIS_MAP_MAXIMUM_COLS];
-			int minData;
-			int maxData;
-		}; */
 
 		struct singleAxisMap
 		{
@@ -113,7 +85,7 @@ class configHandler
 		};
 
 		void initMaps();
-		void printObjectsToSerial();
+		//void printObjectsToSerial();
 		void setObjectIDs();
 		int giveShiftMapValue(shiftType stype, driveType dtype, int oil, int load);
 		void changeShiftMapValue(dualAxisMap* map, int rowVal, int colVal, int newVal);
@@ -221,15 +193,16 @@ class configHandler
 		parameter startWith1StGear_;
 		parameter minimumVehicleSpeedForGearRatioDetection_;
 		parameter wheelCircum_;
+		parameter finalDriveRatiox100_;
 		parameter brightness_;
 		parameter engineSpeedPulsesPerRev_;
 		parameter driveShaftPulsesPerRev_;
 	
 
-		const uint8_t parametersAmount_ = 8; // remember to update after adding params
+		const uint8_t parametersAmount_ = 9; // remember to update after adding params
 
-		parameter* parameters_[8] = {&tccControlPfactor_, &tccControlIfactor_, &startWith1StGear_ ,&minimumVehicleSpeedForGearRatioDetection_, &wheelCircum_, 
-		&brightness_, &engineSpeedPulsesPerRev_, &driveShaftPulsesPerRev_};
+		parameter* parameters_[9] = {&tccControlPfactor_, &tccControlIfactor_, &startWith1StGear_ ,&minimumVehicleSpeedForGearRatioDetection_, &wheelCircum_, 
+		&brightness_, &engineSpeedPulsesPerRev_, &driveShaftPulsesPerRev_, &finalDriveRatiox100_};
 
 
 		// containers

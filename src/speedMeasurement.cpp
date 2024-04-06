@@ -59,6 +59,7 @@ int speedMeasurement::giveRPM()
     if (rpm < minRPM_ || counter_ > longestPeriodToAccept_)
     {
         periodLength_ = 0;
+        counter_ = longestPeriodToAccept_; // to prevent overflow
         return 0;
     }
     else if (rpm > maxRPM_)

@@ -135,6 +135,10 @@ void core::updateParameter(configHandler::parameter* p)
     {
         TCCcontrol_.setKI(p->data);
     }
+    else if (p->ID == "Final_drive_ratio_x100")
+    {
+        finalDriveRatioX100_ = p->data;
+    }
 
 }
 
@@ -236,15 +240,14 @@ void core::updateSpeedMeasurements()
     
     vehicleSpeed_  = (((wheelCircum_ * 10000) / (driveShaftPulsesPerRev_ * usedVehicleSpeedPeriodLength))) / 3.6; // in case used speed measurement is from driveshaft!
 
-    cardanShaftSpeed_ = (60 / driveShaftPulsesPerRev_) * 1000000 / (usedVehicleSpeedPeriodLength) * 3.15; // in case used speed measurement (pri or sec) is from driveshaft
+    cardanShaftSpeed_ = (60 / driveShaftPulsesPerRev_) * 1000000 / (usedVehicleSpeedPeriodLength) * float(finalDriveRatioX100_ / 100) ; // in case used speed measurement (pri or sec) is from driveshaft
 
     //cardanShaftSpeed_ = secondaryVehicleSpeedMeas_.giveRPM(); // in case secondary sensor measures directly cardan shaft
 
     //cardanShaftSpeed_ = primaryVehicleSpeedMeas_.giveRPM(); // in case primary sensor measures cardan shaft
 
     primaryVehicleSpeed_ = primaryVehicleSpeedMeas_.giveRPM();
-    secondaryVehicleSpeed_ = secondaryVehicleSpeedMeas_.giveRPM();
- 
+    secondaryVehicleSpeed_ = secondaryVehicleSpeedMeas_.giveRPM(); 
 
     engineSpeed_ = engineSpeedMeas_.giveRPM();
     n2Speed_ = n2SpeedMeas_.giveRPM();

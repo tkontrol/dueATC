@@ -48,6 +48,7 @@ class core
 
 		int wheelCircum_;
 		int driveShaftPulsesPerRev_;
+		int finalDriveRatioX100_;
 		int startupCounter_;
 		uint8_t currentGear_;
 		uint8_t targetGear_;

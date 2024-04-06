@@ -194,14 +194,6 @@ class ui
 		}; 
 		menuCollection SPCMenu_  = {sizeof(SPCM_)/sizeof(SPCM_[0]), 0, &*SPCM_, &mapEditorMenu_};
 
-		/*
-
-		// Malfunctions menu, hidden!
-		menuObj malfM_[1] = {
-			{"1", &ui::showMalfunctionCode1},
-		}; 
-		menuCollection malfunctionMenu_ = {sizeof(malfM_)/sizeof(malfM_[0]), 0, &*malfM_};*/
-
 	public:
 		ui();
 		~ui();

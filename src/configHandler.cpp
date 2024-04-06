@@ -67,13 +67,14 @@ void configHandler::setObjectIDs() // sets ID's for every object as they exist i
     startWith1StGear_.ID = String("Start_with_1St_gear"); startWith1StGear_.minData = 0; startWith1StGear_.maxData = 1;
     minimumVehicleSpeedForGearRatioDetection_.ID = String("Min_vehicle_spd_for_gear_ratio_detection"); minimumVehicleSpeedForGearRatioDetection_.minData = 0; minimumVehicleSpeedForGearRatioDetection_.maxData = 270;
     wheelCircum_.ID = String("Wheel_circum"); wheelCircum_.minData = 1000; wheelCircum_.maxData = 3000;
+    finalDriveRatiox100_ = {"Final_drive_ratio_x100", 100, 600};
     brightness_.ID = String("Screen_brightness"); brightness_.minData = 0; brightness_.maxData = 100;
     engineSpeedPulsesPerRev_.ID = String("engineSpeed_Pulses_Per_Revolution"); engineSpeedPulsesPerRev_.minData = 1; engineSpeedPulsesPerRev_.maxData = 100;
     driveShaftPulsesPerRev_.ID = String("driveShaft_Pulses_Per_Revolution"); driveShaftPulsesPerRev_.minData = 1; driveShaftPulsesPerRev_.maxData = 100;
     tccControlPfactor_.ID = String("TCC_PI_control_P_factor"); tccControlPfactor_.minData = 1; tccControlPfactor_.maxData = 1000;
     tccControlIfactor_.ID = String("TCC_PI_control_I_factor"); tccControlIfactor_.minData = 1; tccControlIfactor_.maxData = 1000;
 }
-
+/*
 void configHandler::printObjectsToSerial()
 {
     Serial.print("Parametrit: \n");
@@ -107,7 +108,7 @@ void configHandler::printObjectsToSerial()
         Serial.print(", luettu: ");
         Serial.println(dualAxisMaps_[i]->readFromSD);
     } 
-}
+} */
 
 int configHandler::giveShiftMapValue(shiftType stype, driveType dtype, int oil, int load)
 {
