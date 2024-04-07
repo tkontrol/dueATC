@@ -112,19 +112,6 @@ void ui::initUI()
   showNotification(1000, core_.readConfFile());
 
   core_.startupProcedure();
-
-/*
-  menuObj paramMenuObj_[parametersPtr_->size];
-
-  for (int i = 0; i < parametersPtr_->size; i++)
-  {
-    paramMenuObj_[i].title = parametersPtr_->parameters[i].ID;
-    Serial.println(parametersPtr_->parameters[i].ID);
-    paramMenuObj_[i].function = &ui::editParameter; 
-  }
-
-  paramMenu_ =  {sizeof(paramMenuObj_)/sizeof(paramMenuObj_[0]), 0, paramMenuObj_};
-*/
 }
 
 void ui::showNotification(int time, String msg)
@@ -387,27 +374,49 @@ bool ui::showMainScreen()
 
 void ui::drawMainScreen()
 { 
-  // Current gear section
-  //setFont(u8g2_font_inb53_mf);
+  static int blinkCounter = 0;
 
-  if (*dataPtrs_.shiftOnGoing)
+  if (*dataPtrs_.shifting)
   {
-      screen_.setCursor(-4, 50);
-      screen_.setFont(u8g2_font_inr42_mf);
-      screen_.print(*dataPtrs_.currentGear);  
+      blinkCounter++;
+
+      if (blinkCounter < 5)
+      {
+        screen_.setFont(u8g2_font_7Segments_26x42_mn);
+        if (*dataPtrs_.currentGear == 1)
+        {
+          screen_.setCursor(-10, 50);
+        }
+        else
+        {
+          screen_.setCursor(0, 50);
+        }
+        screen_.print(*dataPtrs_.currentGear); 
+      }
+      
+      if (blinkCounter > 10)
+      {
+        blinkCounter = 0;
+      }
+
+      //screen_.setCursor(-4, 50);
+      //screen_.setFont(u8g2_font_inr42_mf);
+      //screen_.print(*dataPtrs_.currentGear); 
+      //Serial.println("hep!");
   }
   else
   {
-      screen_.setFont(u8g2_font_7Segments_26x42_mn);
-      if (*dataPtrs_.currentGear == 1)
-      {
-        screen_.setCursor(-10, 50);
-      }
-      else
-      {
-        screen_.setCursor(0, 50);
-      }
-      screen_.print(*dataPtrs_.currentGear); 
+    blinkCounter = 0;
+    screen_.setFont(u8g2_font_7Segments_26x42_mn);
+    if (*dataPtrs_.currentGear == 1)
+    {
+      screen_.setCursor(-10, 50);
+    }
+    else
+    {
+      screen_.setCursor(0, 50);
+    }
+    screen_.print(*dataPtrs_.currentGear); 
   }
 
 
@@ -588,8 +597,6 @@ void ui::drawLiveData2()
   const int columnXPos = 100;	
   const int firstLine = 18;
   const int lineGap = 9;
-
-  int cpuTemp = int((((ADC->ADC_CDR[15]/1023.0)*3300)-800)/2.65+27); // see SAM3X datasheet pg 1410, calculating CPU temp
 	
   screen_.setFont(u8g_font_5x8);
   screen_.drawStr(35, firstLine-9, "LIVE DATA PAGE 2");
@@ -614,12 +621,12 @@ void ui::drawLiveData2()
   screen_.setCursor(columnXPos, firstLine+lineGap*3);
   screen_.print(*dataPtrs_.tcSlip);  
   screen_.drawLine(0, firstLine+lineGap*3+1, 128, firstLine+lineGap*3+1);  
-  
+  /*
   screen_.drawStr(0, firstLine+lineGap*4, "CPU temp, C:");
   screen_.setCursor(columnXPos, firstLine+lineGap*4);
   screen_.print(cpuTemp);  
   screen_.drawLine(0, firstLine+lineGap*4+1, 128, firstLine+lineGap*4+1);
- /*
+ 
   screen_.drawStr(0, firstLine+lineGap*5, "Transm. ratio:");
   screen_.setCursor(columnXPos, firstLine+lineGap*5);
   screen_.print(*dataPtrs_.transmissionRatio);   */

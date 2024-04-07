@@ -9,6 +9,7 @@ core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicl
     oilTemp_PN_Meas_(analogMeasurement(7, 1)), // 7 = pin A0    
     MAP_Meas_(analogMeasurement(6, 10)), // 6 = pin A1
     TPS_Meas_(analogMeasurement(5, 10)), // 5 = pin A2
+    shiftControl_(shiftControl()),
     config_(configHandler()),
     TCCcontrol_(TCCcontrol()),
     startupCounter_(0),
@@ -19,13 +20,10 @@ core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicl
     Rswitch_(RswitchPin),
     gearPlus_(gearPlusPin),
     gearMinus_(gearMinusPin)
-{   
-}
+{}
 
 core::~core()
-{
-
-}
+{}
 
 // run once at startup
 void core::initController()
@@ -38,9 +36,13 @@ void core::initController()
 
     config_.initMaps();
     parametersPtr_ = config_.givePtrToConfigurationSet()->parameters; // receive pointer to parameters. otherwise than maps container pointer, this is used also by core
+    shiftControl_.initShiftControl(currentGear_, targetGear_, shifting_, lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_);
     TCCcontrol_.setOutputLimits(0, 100);
     TCCcontrol_.setMeasurementPointers(n2Speed_, n3Speed_); // CHANGE HERE engineSpeed ja incomingShaftSpeed
     TCCcontrol_.setTCCmode(tccMode_); // WHERE TO GET THIS SETTING?
+
+    useGearRatioDetection_ = false; // REMOVE AFTER TESTING
+    shiftPermission_ = true; // REMOVE AFTER TESTING
 
     notification_.pending = false;
     notification_.isShown = true;
@@ -70,6 +72,34 @@ void core::initController()
     //activateMalfunction(3);
     //activateMalfunction(2);
     //activateMalfunction(7); 
+}
+
+void core::coreloop() // this is called in 1ms intervals, see main.cpp
+{     
+    gearPlus_.releaseBlock();
+    gearMinus_.releaseBlock();
+
+    updateSpeedMeasurements(); //first one in loop, use these values during the loop
+    detectDriveType();
+    updateAnalogMeasurements();
+    updateLeverPosition();
+    readShiftSwitches();
+    makeUpShiftCommand();
+    makeDownShiftCommand();
+    doShiftLogic();
+    shiftControl_.runShifts();
+    controlPWMSolenoids();
+    updateLog();
+    brakePedalSwitchState_ = brakePedal_.giveState();
+
+    lever_ = D; // REMOVE AFTER TESTING
+    //analogWrite(2, 0); // WHAT DOES THIS CAUSE??
+
+    if (notificationTimerOn_)
+    {
+        notificationTimerCounter_++;
+    }
+    testcounter_++; 
 }
 
 void core::startupProcedure()
@@ -140,33 +170,6 @@ void core::updateParameter(configHandler::parameter* p)
         finalDriveRatioX100_ = p->data;
     }
 
-}
-
-void core::coreloop() // this is called in 1ms intervals, see main.cpp
-{     
-    gearPlus_.releaseBlock();
-    gearMinus_.releaseBlock();
-
-    updateSpeedMeasurements(); //first one in loop, use these values during the loop
-    detectDriveType();
-    updateAnalogMeasurements();
-    updateLeverPosition();
-    readShiftSwitches();
-    makeUpShiftCommand();
-    makeDownShiftCommand();
-    doShiftLogic();
-    controlPWMSolenoids();
-    updateLog();
-    brakePedalSwitchState_ = brakePedal_.giveState();
-
-    lever_ = D; // REMOVE AFTER TESTING
-    //analogWrite(2, 0); // WHAT DOES THIS CAUSE??
-
-    if (notificationTimerOn_)
-    {
-        notificationTimerCounter_++;
-    }
-    testcounter_++; 
 }
 
 String core::readConfFile()
@@ -259,16 +262,17 @@ void core::updateSpeedMeasurements()
     //calculating input shaft speed 
     if (n3n2Ratio_ <= 0.5) // actually, when n3Speed_ = 0. Presumably the shaft takes some time to slow down to 0, so this is just to speed up the measurement 
     {
-        incomingShaftSpeed_ = n2Speed_ * 1.64; // 1.64 is the ratio from n2 sensor's shaft to incoming shaft speed (=turbine speed), when gear is 1 or 5 (=n3 speed is zero)
+        inputShaftSpeed_ = n2Speed_ * 1.64; // 1.64 is the ratio from n2 sensor's shaft to incoming shaft speed (=turbine speed), when gear is 1 or 5 (=n3 speed is zero)
     }
     else 
     {
-        incomingShaftSpeed_ = n2Speed_; //when gear is 2, 3 or 4, n3 speed is not zero, and then incoming shaft speed (=turbine speed) equals to n2 speed
+        inputShaftSpeed_ = n2Speed_; //when gear is 2, 3 or 4, n3 speed is not zero, and then incoming shaft speed (=turbine speed) equals to n2 speed
     }
 
-    tcSlip_ = abs(n2Speed_ - n3Speed_);
+    tcSlip_ = abs(engineSpeed_ - inputShaftSpeed_);
 
-    transmissionRatio_ = float(incomingShaftSpeed_) / float(cardanShaftSpeed_); 
+    transmissionRatio_.ratio = float(inputShaftSpeed_) / float(cardanShaftSpeed_); 
+    transmissionRatio_.isValid = true;
 }
 
 void core::detectDriveType()
@@ -346,7 +350,7 @@ void core::readShiftSwitches()
 }
 
 void core::doShiftLogic()
-{  
+{  /*
 
     //Serial.print("  downComm: ");
     //Serial.print(gearDownComm_);
@@ -403,61 +407,45 @@ void core::doShiftLogic()
         {
             MPC_ = config_.giveShiftMapValue(configHandler::MPC_1to2, driveType_, oilTemp_, load_);
             SPC_ = config_.giveShiftMapValue(configHandler::SPC_1to2, driveType_, oilTemp_, load_);
-            digitalWrite(SOL_12_45, HIGH);
-            shifting_ = true;
         }
         else if (currentGear_ == 2 && targetGear_ == 3) // etc
         {
             MPC_ = config_.giveShiftMapValue(configHandler::MPC_2to3, driveType_, oilTemp_, load_);
             SPC_ = config_.giveShiftMapValue(configHandler::SPC_2to3, driveType_, oilTemp_, load_);
-            digitalWrite(SOL_23, HIGH);
-            shifting_ = true;
         }
         else if (currentGear_ == 3 && targetGear_ == 4)
         {
             MPC_ = config_.giveShiftMapValue(configHandler::MPC_3to4, driveType_, oilTemp_, load_);
             SPC_ = config_.giveShiftMapValue(configHandler::SPC_3to4, driveType_, oilTemp_, load_);
-            digitalWrite(SOL_34, HIGH);
-            shifting_ = true;
         }
         else if (currentGear_ == 4 && targetGear_ == 5)
         {
             MPC_ = config_.giveShiftMapValue(configHandler::MPC_4to5, driveType_, oilTemp_, load_);
             SPC_ = config_.giveShiftMapValue(configHandler::SPC_4to5, driveType_, oilTemp_, load_);
-            digitalWrite(SOL_12_45, HIGH);
-            shifting_ = true;
         }
         else if (currentGear_ == 5 && targetGear_ == 4)
         {
             MPC_ = config_.giveShiftMapValue(configHandler::MPC_5to4, driveType_, oilTemp_, load_);
             SPC_ = config_.giveShiftMapValue(configHandler::SPC_5to4, driveType_, oilTemp_, load_);
-            digitalWrite(SOL_12_45, HIGH);
-            shifting_ = true;
         }
         else if (currentGear_ == 4 && targetGear_ == 3)
         {
             MPC_ = config_.giveShiftMapValue(configHandler::MPC_4to3, driveType_, oilTemp_, load_);
             SPC_ = config_.giveShiftMapValue(configHandler::SPC_4to3, driveType_, oilTemp_, load_);
-            digitalWrite(SOL_34, HIGH);
-            shifting_ = true;
         } 
         else if (currentGear_ == 3 && targetGear_ == 2)
         {
             MPC_ = config_.giveShiftMapValue(configHandler::MPC_3to2, driveType_, oilTemp_, load_);
             SPC_ = config_.giveShiftMapValue(configHandler::SPC_3to2, driveType_, oilTemp_, load_);
-            digitalWrite(SOL_23, HIGH);
-            shifting_ = true;
         } 
         else if (currentGear_ == 2 && targetGear_ == 1)
         {
             MPC_ = config_.giveShiftMapValue(configHandler::MPC_2to1, driveType_, oilTemp_, load_);
             SPC_ = config_.giveShiftMapValue(configHandler::SPC_2to1, driveType_, oilTemp_, load_);
-            digitalWrite(SOL_12_45, HIGH);
-            shifting_ = true;
         } 
     }
     else // when shifting_ = true -> what is executed during the shift and what ends it
-    {
+    { 
         shiftTimer_++;
         lastShiftDuration_ = shiftTimer_; 
         // shift is now ongoing, timer is running. increase the variable on MainScreen during the shift
@@ -465,7 +453,7 @@ void core::doShiftLogic()
         // end shift if:
         // we use gear ratio detection and the correct ratio of targetGear_ is reached, or;
         // we dont use gear ratio detection and shift has lasted > 1500ms, so presuming the gear has coupled anyway
-        if ((useGearRatioDetection_ && confirmGear(targetGear_)) || (!useGearRatioDetection_ && shiftTimer_ == 1500)) // when the gear is detected to be properly coupled, change shifting_ = false
+        if (useGearRatioDetection_  || (!useGearRatioDetection_ && shiftTimer_ == 1500) // when the gear is detected to be properly coupled, change shifting_ = false
         {
             digitalWrite(SOL_12_45, LOW);
             digitalWrite(SOL_23, LOW);
@@ -501,9 +489,9 @@ void core::doShiftLogic()
                 activateMalfunction(5);
                 shiftingMode_ = MAN;
                 //currentGear_ = targetGear_ = 0; // pakko olla tässä, että vaihto loppuu joskus... VAI ONKO JOS VAIHDETAAN MANUAALILLE               
-            }       */      
+            }          
 
-            /*
+            
 
             // if there is need to alter SPC or SPC maps
             if (lastShiftDuration_ < config_.giveShiftTimeTargetValue(load_) - 200) // milliseconds
@@ -517,13 +505,13 @@ void core::doShiftLogic()
                 config_.modifyLastShiftMaps(+5,+5);                            
                 lastMPCchange_ = '+';
                 lastSPCchange_ = '+';  
-            } */
-        }
-    }
+            } 
+        } 
+    } */
 }
 
 void core::doAutoShifts()
-{
+{ /*
     autoModeTargetGear_ = config_.giveAutoModeTargetGear(vehicleSpeed_, currentGear_, 54); // VAIHDA TÄHÄN KAASUN ASENTO TAI KUORMA
     if (autoModeTargetGear_ == 0) {return;} // config_ returns 0 -> no need to shift atm, exit function
 
@@ -535,7 +523,7 @@ void core::doAutoShifts()
     if (!shifting_ && !gearDownReq_ && !gearUpReq_ && autoModeTargetGear_ < currentGear_)
     {
         gearDownReq_ = true;
-    }
+    } */
 }
 
 void core::controlPWMSolenoids()
@@ -591,12 +579,12 @@ void core::updateLog()
             break;
 
             case transmissionRatio:
-                var2 = transmissionRatio_;
+                var2 = transmissionRatio_.ratio;
             break;
 
             case TCSlipAndTCControl:
                 var1 = *TCCcontrol_.giveOutputPointer();
-                var2 = tcSlip_; // engineSpeed_ - incomingShaftSpeed_;
+                var2 = tcSlip_; // engineSpeed_ - inputShaftSpeed_;
             break;
 
             case oilTemp:
@@ -643,18 +631,28 @@ void core::updateLog()
 
 void core::gearUpRequest() // for manual upshift, call this
 {
-    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R) && !shifting_ && !gearUpReq_ && !gearDownReq_) // && !malfunctions_.activeMalfunctions)
+    if (targetGear_ < 5)
+    {
+        targetGear_ ++;
+    }
+    /*
+    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R)) // && !malfunctions_.activeMalfunctions)
     {
         gearUpReq_ = true;
-    }
+    } */
 }
 
 void core::gearDownRequest() // for manual downshift, call this
 {
-    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R) && !shifting_ && !gearDownReq_ && !gearUpReq_) // && !malfunctions_.activeMalfunctions)
+    if (targetGear_ > 1)
+    {
+        targetGear_ --;
+    }
+     /*
+    if (shiftingMode_ == MAN && (lever_ == D || lever_ == R)) // && !malfunctions_.activeMalfunctions)
     {  
         gearDownReq_ = true;
-    }
+    } */
 }
 
 void core::makeUpShiftCommand()
@@ -713,48 +711,14 @@ void core::makeDownShiftCommand()
         gearDownComm_ = true;
     }
 }
-
+ 
 bool core::confirmGear(uint8_t gear)
-{
-    float gap = 0.1;
-    switch(gear)
-    {
-        case 1:
-            if (transmissionRatio_ <= 3.59 + gap && transmissionRatio_ >= 3.59 - gap)
-            {
-                return true;
-            }
-            break;
-        case 2:
-            if (transmissionRatio_ <= 2.19 + gap && transmissionRatio_ >= 2.19 - gap)
-            {
-                return true;
-            }
-            break;
-        case 3:
-            if (transmissionRatio_ <= 1.41 + gap && transmissionRatio_ >= 1.41 - gap)
-            {
-                return true;
-            }
-            break;
-        case 4:
-            if (transmissionRatio_ <= 1.00 + gap && transmissionRatio_ >= 1.00 - gap)
-            {
-                return true;
-            }
-            break;
-        case 5:
-            if (transmissionRatio_ <= 0.83 + gap && transmissionRatio_ >= 0.83 - gap)
-            {
-                return true;
-            }
-            break;
-    }
-    return false;
-}
+{ 
 
+}
+ 
 bool core::detectGear()
-{
+{ /*
     uint8_t gear = 0;
     switch (lever_)
     {
@@ -792,7 +756,7 @@ bool core::detectGear()
     
     case D:
         if (vehicleSpeed_ != 0) // ok, vehicle is moving and we get to measure the right gear
-        {            
+        {      /*      
             for (gear = 1; gear <= 5; gear++)
             {
                 if (gear == 1 && confirmGear(gear))
@@ -819,7 +783,7 @@ bool core::detectGear()
                 {
                     return false;
                 }
-            }            
+            }           
         }
         else if (vehicleSpeed_ == 0) // vehicle is stationary
         {
@@ -834,7 +798,8 @@ bool core::detectGear()
         }
         break;
     }  
-    return true; // ratio matches certain gear, all ok -> return true
+    return true; // ratio matches certain gear, all ok -> return true 
+    */
 }
 
 void core::setLoggableVariable(core::loggableVariable var)
@@ -944,6 +909,7 @@ struct core::dataStruct core::giveDataPointers()
     data_.gearPlusSwitch = &gearPlusSwitchState_;
     data_.gearMinusSwitch = &gearMinusSwitchState_;     
     data_.leverPosition = &lever_;
+    data_.shifting = &shifting_;
     data_.shiftingMod = &shiftingMode_;
     data_.tccMod = &tccMode_;
     data_.dType = &driveType_;
@@ -960,7 +926,7 @@ struct core::dataStruct core::giveDataPointers()
     data_.n3Speed = &n3Speed_;
     data_.tcSlip = &tcSlip_;
     data_.n3n2Ratio = &n3n2Ratio_;
-    data_.transmissionRatio = &transmissionRatio_;
+    data_.transmissionRatio = &transmissionRatio_.ratio;
     data_.cardanSpeed = &cardanShaftSpeed_;
     data_.MPCchange = &lastMPCchange_;
     data_.SPCchange = &lastSPCchange_;

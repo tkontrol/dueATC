@@ -7,6 +7,7 @@
 #include <../headers/analogMeasurement.h>
 #include <../headers/TCCcontrol.h>
 #include <../headers/binaryMeasurement.h>
+#include <../headers/shiftControl.h>
 
 #define brakePedalSwitchPin 27
 #define PswitchPin 25
@@ -43,6 +44,7 @@ class core
 		binaryMeasurement gearPlus_;
 		binaryMeasurement gearMinus_;
 
+		shiftControl shiftControl_;
     	configHandler config_;
 		TCCcontrol TCCcontrol_;
 
@@ -64,7 +66,7 @@ class core
 		int primaryVehicleSpeed_;
 		int secondaryVehicleSpeed_;
 		int cardanShaftSpeed_;
-		int incomingShaftSpeed_;
+		int inputShaftSpeed_;
 		int n2Speed_;
 		int n3Speed_;
 		int tcSlip_;
@@ -78,7 +80,16 @@ class core
 		uint8_t MPC_;
 		uint8_t SPC_;
 		float n3n2Ratio_;
-		float transmissionRatio_;
+		//float transmissionRatio_;
+
+		struct transmissionRatio
+		{
+			float ratio;
+			bool isValid;
+		};
+
+		transmissionRatio transmissionRatio_;
+
 		int logTimerCounter_;
 		bool logging_;
 		int shiftTimer_;
@@ -89,6 +100,7 @@ class core
 		bool gearDownReq_;
 		bool gearUpComm_;
 		bool gearDownComm_;
+		bool shiftPermission_;
 		bool usePreShiftDelay_ = false;
 		bool startWith1StGear_;
 		int lastShiftDuration_;	
@@ -174,7 +186,7 @@ class core
 			float* n3n2Ratio;
 			float* transmissionRatio;		
 			int* lastShiftDuration;	
-			bool* shiftOnGoing;
+			bool* shifting;
 			char* MPCchange;
 			char* SPCchange;
 			int* tccControlOutput;
@@ -195,10 +207,10 @@ class core
 
 		
 		void initController();
+		void coreloop();
 		void startupProcedure();
 		void applyParameters();
 		void updateParameter(configHandler::parameter* p);
-		void coreloop();
 		String readConfFile();
 		String readDefaultsFile();
 		String writeConfFile();
