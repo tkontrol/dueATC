@@ -36,7 +36,7 @@ void core::initController()
 
     config_.initMaps();
     parametersPtr_ = config_.givePtrToConfigurationSet()->parameters; // receive pointer to parameters. otherwise than maps container pointer, this is used also by core
-    shiftControl_.initShiftControl(currentGear_, targetGear_, shifting_, lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_);
+    shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, shifting_, lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_);
     TCCcontrol_.setOutputLimits(0, 100);
     TCCcontrol_.setMeasurementPointers(n2Speed_, n3Speed_); // CHANGE HERE engineSpeed ja incomingShaftSpeed
     TCCcontrol_.setTCCmode(tccMode_); // WHERE TO GET THIS SETTING?
@@ -79,6 +79,7 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     gearPlus_.releaseBlock();
     gearMinus_.releaseBlock();
 
+
     updateSpeedMeasurements(); //first one in loop, use these values during the loop
     detectDriveType();
     updateAnalogMeasurements();
@@ -86,9 +87,7 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     readShiftSwitches();
     makeUpShiftCommand();
     makeDownShiftCommand();
-    doShiftLogic();
     shiftControl_.runShifts();
-    controlPWMSolenoids();
     updateLog();
     brakePedalSwitchState_ = brakePedal_.giveState();
 
@@ -348,9 +347,9 @@ void core::readShiftSwitches()
     if (gearPlusSwitchState_) {gearUpRequest();}
     if (gearMinusSwitchState_) {gearDownRequest();}
 }
-
+/*
 void core::doShiftLogic()
-{  /*
+{  
 
     //Serial.print("  downComm: ");
     //Serial.print(gearDownComm_);
@@ -507,29 +506,23 @@ void core::doShiftLogic()
                 lastSPCchange_ = '+';  
             } 
         } 
-    } */
-}
+    } 
+}*/
 
 void core::doAutoShifts()
-{ /*
-    autoModeTargetGear_ = config_.giveAutoModeTargetGear(vehicleSpeed_, currentGear_, 54); // VAIHDA TÄHÄN KAASUN ASENTO TAI KUORMA
-    if (autoModeTargetGear_ == 0) {return;} // config_ returns 0 -> no need to shift atm, exit function
-
-    if (!shifting_ && !gearUpReq_ && !gearDownReq_ && autoModeTargetGear_ > currentGear_)
+{  
+    if (shiftingMode_ == AUT)
     {
-        gearUpReq_ = true;
+        autoModeTargetGear_ = config_.giveAutoModeTargetGear(vehicleSpeed_, currentGear_, 54); // VAIHDA TÄHÄN KAASUN ASENTO TAI KUORMA
+        if (autoModeTargetGear_ == 0)
+        {
+            return; // config_ returns 0 -> no need to shift atm, exit function
+        }
+        else
+        {
+            targetGear_ = autoModeTargetGear_;
+        }
     }
-    
-    if (!shifting_ && !gearDownReq_ && !gearUpReq_ && autoModeTargetGear_ < currentGear_)
-    {
-        gearDownReq_ = true;
-    } */
-}
-
-void core::controlPWMSolenoids()
-{
-    REG_PWM_CDTYUPD0 = MPC_; //pin 34/35, control the MPC solenoid
-    REG_PWM_CDTYUPD1 = SPC_; //pin 36/37, control the SPC solenoid    
 }
 
 void core::toggleAutoMan()

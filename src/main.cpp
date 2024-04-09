@@ -108,9 +108,9 @@ void pwmsetup() {
   REG_PWM_CPRD1 = 100; // ch1 (pin 37), pwm duty range 0-100
   REG_PWM_CPRD2 = 100; // ch2 (pin 39), pwm duty range 0-100
 
-  REG_PWM_CDTY0 = 0;
-  REG_PWM_CDTY1 = 0;
-  REG_PWM_CDTY2 = 0;
+  REG_PWM_CDTY0 = 0; // MPC solenoid -> initial status, set to 0 -> inverse control, 0 equals to full pressure, 12 volts
+  REG_PWM_CDTY1 = 100; // SPC solenoid -> initial status, set to 100 -> inverse control, 100 equals to zero pressure, 0 volts
+  REG_PWM_CDTY2 = 100; // TCC solenoid -> initial status, set to 100 -> inverse control, 100 equals to zero pressure, 0 volts
 }
 
 void setup()

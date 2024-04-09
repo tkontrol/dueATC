@@ -87,7 +87,7 @@ class configHandler
 		void initMaps();
 		//void printObjectsToSerial();
 		void setObjectIDs();
-		int giveShiftMapValue(shiftType stype, driveType dtype, int oil, int load);
+		int giveShiftMapValue(shiftType stype, driveType dtype, int oil, uint8_t load);
 		void changeShiftMapValue(dualAxisMap* map, int rowVal, int colVal, int newVal);
 		void modifyLastShiftMaps(int MPCchange, int SPCchange);
 		uint8_t giveAutoModeTargetGear(int vehicleSpeed, uint8_t currentGear, int rowVal);
@@ -96,7 +96,7 @@ class configHandler
 		int giveTPSValue(int voltage);
 		int giveMAPValue(int voltage);
 		int giveEngSpdLoadFactorValue(int engineSpeed);
-		int giveShiftTimeTargetValue(int load);
+		int giveShiftTimeTargetValue(uint8_t load);
 		struct dualAxisMap* identifyShiftMap(shiftType stype, driveType dtype);
 		int readDualAxisMap(dualAxisMap* map, int rowVal, int colVal);
 		int readSingleAxisMap(singleAxisMap* map, int colVal);

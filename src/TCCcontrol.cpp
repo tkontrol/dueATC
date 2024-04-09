@@ -49,15 +49,15 @@ void TCCcontrol::updateTCC()
     switch (*TCCmode_)
     {
         case open:
-            REG_PWM_CDTYUPD2 = 100; //pin 38/39, no voltage to TCC solenoid
+            //REG_PWM_CDTYUPD2 = 100; //pin 38/39, no voltage to TCC solenoid
         break;
 
         case slipping:
-            REG_PWM_CDTYUPD2 = givePIOutput(); //pin 38/39, PI control
+            //REG_PWM_CDTYUPD2 = givePIOutput(); //pin 38/39, PI control
         break;
 
         case closed:
-            REG_PWM_CDTYUPD2 = 0; //pin 38/39, 12v to TCC solenoid
+            //REG_PWM_CDTYUPD2 = 0; //pin 38/39, 12v to TCC solenoid
         break;
     }
 }

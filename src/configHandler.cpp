@@ -110,7 +110,7 @@ void configHandler::printObjectsToSerial()
     } 
 } */
 
-int configHandler::giveShiftMapValue(shiftType stype, driveType dtype, int oil, int load)
+int configHandler::giveShiftMapValue(shiftType stype, driveType dtype, int oil, uint8_t load)
 {
     dualAxisMap *map = identifyShiftMap(stype, dtype);
     lastShiftOilTemp_ = oil;
@@ -327,9 +327,9 @@ int configHandler::giveEngSpdLoadFactorValue(int engineSpeed)
     return readSingleAxisMap(&engSpdLoadFactorMap_, engineSpeed);
 }
 
-int configHandler::giveShiftTimeTargetValue(int load)
+int configHandler::giveShiftTimeTargetValue(uint8_t load)
 {
-    return readSingleAxisMap(&shiftTimeTargetMap_, load);
+    return readSingleAxisMap(&shiftTimeTargetMap_, int(load));
 }
 
 struct configHandler::dualAxisMap* configHandler::identifyShiftMap(shiftType stype, driveType dtype)

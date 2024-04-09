@@ -226,9 +226,7 @@ class core
 		void updateAnalogMeasurements();
 		void updateLeverPosition();
 		void readShiftSwitches();
-		void doShiftLogic();
 		void doAutoShifts();
-		void controlPWMSolenoids();
 		void updateLog();
 		void setLoggableVariable(core::loggableVariable var);
 		void setLoggingStatus(bool state);
