@@ -31,6 +31,7 @@ class shiftControl
 		bool* shiftPermission_;
 
 		void activateSolenoids();
+		uint8_t checkIfTransmissionRatioMatchesAnyGear();
 		bool checkIfTransmissionRatioMatchesForGear(uint8_t gear);
 		void controlPressureSolenoids();
 

@@ -57,16 +57,47 @@ void shiftControl::runShifts()
     {        
         if (useGearRatioDetectionForShift_)
         {
-            if (checkIfTransmissionRatioMatchesForGear(nextGear_)) // if ratio is reached, end shift
-            {
+            if (checkIfTransmissionRatioMatchesForGear(nextGear_) && shiftTimer_ > 100) // if ratio is reached in plausible time,
+            { // end shift immediately
                 digitalWrite(SOL_12_45, LOW);
                 digitalWrite(SOL_23, LOW);
                 digitalWrite(SOL_34, LOW);
                 *currentGear_ = currentGearForShift_ = nextGear_;
                 *shifting_ = false;
+
+            }
+            else if (shiftTimer_ == 3000 || shiftTimer_ == 6000) // if ratio is not reached in 3000ms or 6000ms, try to see if ratio matches any gear at all
+            {
+                uint8_t g = checkIfTransmissionRatioMatchesAnyGear();
+                if (g != 0)
+                {
+                    digitalWrite(SOL_12_45, LOW);
+                    digitalWrite(SOL_23, LOW);
+                    digitalWrite(SOL_34, LOW);
+                   *currentGear_= currentGearForShift_ = nextGear_ = *targetGear_ = g; // force the gear to be the one that is measured
+                   *shifting_ = false; // and then end shift
+                }                
+            }
+            else if (!*useGearRatioDetection_ && shiftTimer_ > 1500) // if decided not to use gear ratio detection during the shift,            
+             // albeit it was used in the beginning of the shift, end shift in 1500ms, not so unusual situation and nothing to worry
+            {
+                digitalWrite(SOL_12_45, LOW);
+                digitalWrite(SOL_23, LOW);
+                digitalWrite(SOL_34, LOW); 
+                *currentGear_= currentGearForShift_ = nextGear_;
+                *shifting_ = false;
+            }
+            else if(shiftTimer_ > 6000) // if no gear ratio was reached after 6000ms, transmission is slipping! at least disable automatic mode here
+            { // maybe show a notification and activate fault code?   
+                digitalWrite(SOL_12_45, LOW);
+                digitalWrite(SOL_23, LOW);
+                digitalWrite(SOL_34, LOW); 
+                *currentGear_= currentGearForShift_ = *targetGear_ = nextGear_;
+                *shifting_ = false;
+                Serial.println("activate manual mode!");
             }
         }
-        else if (shiftTimer_ >= 1500) //
+        else if (shiftTimer_ == 1500) //
         {
             digitalWrite(SOL_12_45, LOW);
             digitalWrite(SOL_23, LOW);
@@ -74,13 +105,12 @@ void shiftControl::runShifts()
             *currentGear_= currentGearForShift_ = nextGear_;
             *shifting_ = false;
         }
-
         *lastShiftDuration_ = shiftTimer_;
         shiftTimer_++;
     }
 
     if (!*shifting_) {activateSolenoids();} // no need to call this when shift is ongoing, because solenoids are activated when the shift starts
-    controlPressureSolenoids();
+    controlPressureSolenoids(); // see function below
 }
 
 // control MPC & SPC solenoids
@@ -154,6 +184,19 @@ void shiftControl::activateSolenoids()
         digitalWrite(SOL_12_45, HIGH);
         *shifting_ = true;
     } 
+}
+
+// loop through all the gears and return the one that matches the ratio. if no gear matches, return 0
+uint8_t shiftControl::checkIfTransmissionRatioMatchesAnyGear()
+{
+    for (uint8_t gear = 1; gear <= 5; gear++)
+    {
+        if (checkIfTransmissionRatioMatchesForGear(gear))
+        {
+            return gear;
+        }
+    }
+    return 0; // if ratio does not match any gear, return 0
 }
 
 // return true if transmission ratio matches given gear

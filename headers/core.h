@@ -246,6 +246,7 @@ class core
 		void makeUpShiftCommand();
 		void makeDownShiftCommand();
 		void toggleAutoMan();
+		void toggleRatioDetection();
 		bool confirmGear(uint8_t gear);
 		bool detectGear();
 		bool giveMalfunctionStatus();

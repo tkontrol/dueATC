@@ -270,7 +270,7 @@ void core::updateSpeedMeasurements()
 
     tcSlip_ = abs(engineSpeed_ - inputShaftSpeed_);
 
-    transmissionRatio_.ratio = float(inputShaftSpeed_) / float(cardanShaftSpeed_); 
+    transmissionRatio_.ratio = float(n2Speed_) / float(n3Speed_); //float(inputShaftSpeed_) / float(cardanShaftSpeed_); 
     transmissionRatio_.isValid = true;
 }
 
@@ -534,6 +534,20 @@ void core::toggleAutoMan()
     else if (shiftingMode_ == AUT)
     {
         shiftingMode_ = MAN;
+    }
+}
+
+void core::toggleRatioDetection()
+{
+    if (useGearRatioDetection_)
+    {
+        useGearRatioDetection_ = false;
+        Serial.println("ratio detection off");
+    }
+    else
+    {
+        useGearRatioDetection_ = true;
+        Serial.println("ratio detection on");
     }
 }
 

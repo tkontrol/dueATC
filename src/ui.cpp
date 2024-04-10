@@ -368,6 +368,10 @@ bool ui::showMainScreen()
   {
     core_.toggleAutoMan();
   }
+  if (downButton_.givePulse())
+  {
+    core_.toggleRatioDetection();
+  }
 
   return cancelButton_.giveSingleShot();
 }
