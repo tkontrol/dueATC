@@ -199,6 +199,7 @@ void configHandler::modifyLastShiftMaps(int MPCchange, int SPCchange)
     else
     {
         changeShiftMapValue(lastMPCmap_, lastShiftOilTemp_, lastShiftLoad_, lastMPCval_ + MPCchange);
+        lastMPCval_ = lastMPCval_ + MPCchange;
     }
     
     if (lastSPCval_ + SPCchange > lastSPCmap_->maxData)
@@ -212,15 +213,8 @@ void configHandler::modifyLastShiftMaps(int MPCchange, int SPCchange)
     else
     {
         changeShiftMapValue(lastSPCmap_, lastShiftOilTemp_, lastShiftLoad_, lastSPCval_ + SPCchange);
+        lastSPCval_ = lastSPCval_ + SPCchange;
     }   
- /*
-    Serial.print(identifyShiftMap(lastShiftMPCType_, lastShiftDriveType_)->ID);
-    Serial.print(": ");
-    Serial.print(giveShiftMapValue(lastShiftMPCType_, lastShiftDriveType_, lastShiftOilTemp_, lastShiftLoad_));
-    Serial.print(" ");
-    Serial.print(identifyShiftMap(lastShiftSPCType_, lastShiftDriveType_)->ID);
-    Serial.print(": ");
-    Serial.println(giveShiftMapValue(lastShiftSPCType_, lastShiftDriveType_, lastShiftOilTemp_, lastShiftLoad_)); */
 }
 
 uint8_t configHandler::giveAutoModeTargetGear(int vehicleSpeed, uint8_t currentGear, int rowVal)
@@ -330,6 +324,10 @@ int configHandler::giveEngSpdLoadFactorValue(int engineSpeed)
 int configHandler::giveShiftTimeTargetValue(uint8_t load)
 {
     return readSingleAxisMap(&shiftTimeTargetMap_, int(load));
+}
+int configHandler::giveShiftSolenoidTimeValue(int oil, uint8_t mpcVal)
+{
+    return readDualAxisMap(&Shift_solenoid_time_map_, oil, int(mpcVal));
 }
 
 struct configHandler::dualAxisMap* configHandler::identifyShiftMap(shiftType stype, driveType dtype)
@@ -520,6 +518,7 @@ struct configHandler::dualAxisMap* configHandler::identifyShiftMap(shiftType sty
     }
 }
 
+/*
 // return a value from a given position
 int configHandler::readDualAxisMap(dualAxisMap* map, int rowVal, int colVal)
 {
@@ -537,11 +536,7 @@ int configHandler::readDualAxisMap(dualAxisMap* map, int rowVal, int colVal)
         for(i = 0; i < map->rows; i++)
         {
             if (rowVal <= map->rowTitles[i])
-            {
-                if (rowVal <  (map->rowTitles[i-1] + ((map->rowTitles[i] - map->rowTitles[i-1]) / 2))) // if smaller than halfway of two row titles, then use previous title
-                {
-                    i--;
-                }
+            {                
                 break;
             }
         } 
@@ -562,15 +557,73 @@ int configHandler::readDualAxisMap(dualAxisMap* map, int rowVal, int colVal)
         {
             if (colVal <= map->columnTitles[j])
             {
-                if (colVal <  (map->columnTitles[j-1] + ((map->columnTitles[j] - map->columnTitles[j-1]) / 2))) // if smaller than halfway of two column titles, then use previous title
-                {
-                    j--;
-                }
                 break;
             }
         }  
     }
-    return map->data[i][j];  
+    int betweenRows1 = linearlyInterpolate(map->rowTitles[i-1], map->rowTitles[i], rowVal, map->data[i-1][j-1], map->data[i][j-1]);
+    int betweenRows2 = linearlyInterpolate(map->rowTitles[i-1], map->rowTitles[i], rowVal, map->data[i-1][j], map->data[i][j]);
+    return linearlyInterpolate(map->columnTitles[j-1], map->columnTitles[j], colVal, betweenRows1, betweenRows2);
+} */
+
+// return a value from a given position
+int configHandler::readDualAxisMap(dualAxisMap* map, int rowVal, int colVal)
+{
+    int i = 0;
+    uint8_t rowToSubtract = 1;
+    uint8_t colToSubtract = 1;
+    if (rowVal <= map->rowTitles[0]) // smaller or as small as the smallest in row
+    { 
+        i = 0;
+    }
+    else if(rowVal >= map->rowTitles[map->rows-1]) // bigger or as big as the biggest in row
+    {
+        i = map->rows-1;     
+    }
+    else // in between
+    {
+        for(i = 0; i < map->rows; i++)
+        {
+            if (rowVal <= map->rowTitles[i])
+            {                
+                break;
+            }
+        } 
+    }
+
+    int j = 0;
+    if (colVal <= map->columnTitles[0]) // smaller or as small as the smallest in column
+    { 
+        j = 0;
+    }
+    else if(colVal >= map->columnTitles[map->columns-1]) // bigger or as big as the biggest in column
+    {
+        j = map->columns-1;     
+    }
+    else // in between
+    {
+        for(j = 0; j < map->columns; j++)
+        {
+            if (colVal <= map->columnTitles[j])
+            {
+                break;
+            }
+        }  
+    }
+
+    if (i == 0)
+    {// in case the row to read was the first one (i = 0), to calculate betweenRows1 and betweenRows2, you cannot subtract 1 from 0 and end up with index -1.
+        rowToSubtract = 0; // that's why here we decide to subtract 0 instead of default 1.
+    }
+
+    if (j == 0)
+    {// same as above
+        colToSubtract = 0;
+    }
+
+    int betweenRows1 = linearlyInterpolate(map->rowTitles[i-rowToSubtract], map->rowTitles[i], rowVal, map->data[i-rowToSubtract][j-colToSubtract], map->data[i][j-colToSubtract]);
+    int betweenRows2 = linearlyInterpolate(map->rowTitles[i-rowToSubtract], map->rowTitles[i], rowVal, map->data[i-rowToSubtract][j], map->data[i][j]);
+    return linearlyInterpolate(map->columnTitles[j-colToSubtract], map->columnTitles[j], colVal, betweenRows1, betweenRows2);
 }
 
 // return map data as function of column titles
@@ -647,11 +700,11 @@ int configHandler::linearizeBetweenTwoValues(int x1, int x2, int xVal, int y1, i
 
 int configHandler::linearlyInterpolate(float x1, float x2, float xVal, float y1, float y2)
 {
-    if (xVal < x1)
+    if (xVal <= x1)
     {
         return y1;
     }
-    else if (xVal > x2)
+    else if (xVal >= x2)
     {
         return y2;
     }
@@ -661,10 +714,11 @@ int configHandler::linearlyInterpolate(float x1, float x2, float xVal, float y1,
     }
 }
 
-void configHandler::printDualAxisMapToSerial(shiftType stype, driveType dtype)
+void configHandler::printDualAxisMapToSerial(dualAxisMap *map)
 {
-    dualAxisMap *map = identifyShiftMap(stype, dtype);
-
+    Serial.println(map->ID);
+    Serial.println(map->rows);
+    Serial.println(map->columns);
     Serial.println("RowTitles:");
     for(int i = 0; i < map->rows; i++)
     {

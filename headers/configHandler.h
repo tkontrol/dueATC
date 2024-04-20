@@ -97,13 +97,14 @@ class configHandler
 		int giveMAPValue(int voltage);
 		int giveEngSpdLoadFactorValue(int engineSpeed);
 		int giveShiftTimeTargetValue(uint8_t load);
+		int giveShiftSolenoidTimeValue(int oil, uint8_t mpcVal);
 		struct dualAxisMap* identifyShiftMap(shiftType stype, driveType dtype);
 		int readDualAxisMap(dualAxisMap* map, int rowVal, int colVal);
 		int readSingleAxisMap(singleAxisMap* map, int colVal);
 		int readInverseSingleAxisMap(singleAxisMap* map, int colVal);
 		int linearizeBetweenTwoValues(int x1, int x2, int xVal, int y1, int y2);
 		int linearlyInterpolate(float x1, float x2, float xVal, float y1, float y2);
-		void printDualAxisMapToSerial(shiftType stype, driveType dtype);
+		void printDualAxisMapToSerial(dualAxisMap *map);
 		String readSDCardToDataStructs(char filename[]);
 		String writeDataStructsToSDCard(char filename[]);
 		void clearConfigReadFlags();

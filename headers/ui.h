@@ -1,4 +1,3 @@
-
 #ifndef ARDUINO_UI_H
 #define ARDUINO_UI_H
 #include <Arduino.h>
@@ -23,8 +22,7 @@ class ui
 		core::dataStruct dataPtrs_;
 		configHandler::dualAxisMapContainer* dualAxisMapsPtr_;
 		configHandler::singleAxisMapContainer* singleAxisMapsPtr_;
-		configHandler::parameterContainer* parametersPtr_;
-		
+		configHandler::parameterContainer* parametersPtr_;		
 
 		enum variableTypes {oilTempAndLoad};
 
@@ -93,14 +91,25 @@ class ui
     	uint8_t fallBackSelection_;
 
 		// Main menu
-		menuObj mainM_[5] = {
+		menuObj mainM_[6] = {
 			{"Main Screen", &ui::showMainScreen},
+			{"Adjust last shift", &ui::goToAdjustLastShiftMenu},
 			{"Settings", &ui::goToSettingsMenu},
 			{"Live Data", &ui::goToLiveDataMenu},
 			{"TCC PI ctrl tune", &ui::showTCCTuneView},
 			{"Fault codes", &ui::showMalfunctionCodes}
 		}; 
 		menuCollection mainMenu_ = {sizeof(mainM_)/sizeof(mainM_[0]), 0, &*mainM_};
+
+		menuObj adjLastShiftM_[4] = {
+			{"Increase MPC", &ui::increaseLastShiftMPC},
+			{"Decrease MPC", &ui::decreaseLastShiftMPC},
+			{"Increase SPC", &ui::increaseLastShiftSPC},
+			{"Decrease SPC", &ui::decreaseLastShiftSPC},
+		}; 
+		menuCollection adjLastShiftMenu_ = {sizeof(adjLastShiftM_)/sizeof(adjLastShiftM_[0]), 0, &*adjLastShiftM_, &mainMenu_};
+
+
 
 		// Settings menu
 		menuObj settingsM_[5] = {
@@ -136,10 +145,11 @@ class ui
 		menuCollection dataPlotterMenu_ = {sizeof(dataPlottermM_)/sizeof(dataPlottermM_[0]), 0, &*dataPlottermM_, &liveDataMenu_};
 
 		// Map editor menu
-		menuObj mapEditorM_[3] = {
+		menuObj mapEditorM_[4] = {
 			{"AutoMode gear", &ui::editAutoModeWantedGearMap},
 			{"MPC maps", &ui::goToMPCMapMenu},
-			{"SPC maps", &ui::goToSPCMapMenu}
+			{"SPC maps", &ui::goToSPCMapMenu},
+			{"Shift sol ctrl time", &ui::editShiftSolenoidTimeMap}
 		}; 
 		menuCollection mapEditorMenu_ = {sizeof(mapEditorM_)/sizeof(mapEditorM_[0]), 0, &*mapEditorM_, &settingsMenu_};
 
@@ -236,8 +246,14 @@ class ui
 		//void plotDataForDualYAxis(bool leftAxisFloat = false);
 		void plotDataForDualYAxis(bool leftAxisFloat = false, bool useSmallView = false);
 		bool goToSettingsMenu();
+		bool goToAdjustLastShiftMenu();
+		bool increaseLastShiftMPC();
+		bool decreaseLastShiftMPC();
+		bool increaseLastShiftSPC();
+		bool decreaseLastShiftSPC();
 		bool goToDualAxisMapEditorMenu();
 		bool goToSingleAxisMapEditorMenu();
+
 		bool showParamEditor();
 		bool showTCCTuneView();
 		bool showMalfunctionCodes();
@@ -245,6 +261,7 @@ class ui
 		bool goToSPCMapMenu();
 		bool editMPCNormalDriveMap();
 		bool editAutoModeWantedGearMap();
+		bool editShiftSolenoidTimeMap();
 
 		bool editMPC1to2loadMap();
 		bool editMPC2to3loadMap(); 

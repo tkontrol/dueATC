@@ -20,16 +20,21 @@ class shiftControl
 		uint8_t* currentGear_;
 		uint8_t currentGearForShift_;
 		uint8_t* targetGear_;
+		uint8_t targetGearDelayed_;
 		uint8_t nextGear_;
+		bool* dOrRengaged_;
+		bool* usePreShiftDelay_;
 		bool* shifting_;
 		int shiftTimer_;
 		int* lastShiftDuration_;
+		int shiftSolenoidTimeForShift_;
 		float* transmissionRatio_;
 		bool* useGearRatioDetection_;
 		bool useGearRatioDetectionForShift_;
 		
 		bool* shiftPermission_;
 
+		void checkIfPreshiftDelayIsNeeded();
 		void activateSolenoids();
 		uint8_t checkIfTransmissionRatioMatchesAnyGear();
 		bool checkIfTransmissionRatioMatchesForGear(uint8_t gear);
@@ -41,8 +46,10 @@ class shiftControl
 		~shiftControl();
 
 		void initShiftControl(configHandler &configHandler, uint8_t &MPC, uint8_t &SPC, configHandler::driveType &driveType, int &oilTemp, uint8_t &load,
- 		uint8_t &currentGear, uint8_t &targetGear, bool &shifting, int &lastShiftDuration, float &transmissionRatio, bool &useGearRatioDetection, bool &shiftPermission);
+ 		uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, bool &shifting, int &lastShiftDuration, float &transmissionRatio,
+		bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged);
 		void runShifts();
+		void forceGearVariables(uint8_t gear);
 
 };
 #endif

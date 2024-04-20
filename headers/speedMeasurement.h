@@ -10,6 +10,8 @@ class speedMeasurement
 		int maxRPM_;
 		int longestPeriodToAccept_;
 		int shortestPeriodToAccept_;
+		float lowerFactorForLowPass_;
+		float upperFactorForLowPass_;
 		int counter_;
 		int periodLength_;  // us
 		int calcConst_; // this equals to "60 / pulsesPerRev * 1000000" -> unit = (min*us)/1
@@ -18,7 +20,7 @@ class speedMeasurement
 
 
 	public:
-		speedMeasurement(int interruptInterval, int minRPM, int maxRPM);
+		speedMeasurement(int interruptInterval, int minRPM, int maxRPM, int maxAllowedPeriodLengthChangeBetweenMeasurements);
 		~speedMeasurement();
 
 		void setPulsesPerRev(int amount);

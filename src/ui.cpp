@@ -338,7 +338,7 @@ void ui::updateMenu()
   }
   else if ((this->*currentMenu_->menuObj[executableFunctionNumber].function)()) // if execution flag is set, execute the selected item until it returns true (cancel pressed)
   {
-    currentMenu_->selection = 0;
+    //currentMenu_->selection = 0;
     menuFuncExecuting_ = false;
   }
 }
@@ -1146,6 +1146,14 @@ bool ui::editAutoModeWantedGearMap()
   return exitMapEditor();
 }
 
+bool ui::editShiftSolenoidTimeMap()
+{
+  screen_.setFont(u8g2_font_synchronizer_nbp_tf);
+  screen_.drawStr(22, 8, "Shift sol. ctrl time");
+  editDualAxisMap(givePtrToDualAxisMap("Shift_solenoid_time_map"));
+  return exitMapEditor();
+}
+
 bool ui::editMPC1to2loadMap()
 {
   screen_.setFont(u8g2_font_synchronizer_nbp_tf);
@@ -1616,6 +1624,36 @@ bool ui::goToSettingsMenu()
 {
   currentMenu_ = &settingsMenu_;
   return true;
+}
+
+bool ui::goToAdjustLastShiftMenu()
+{
+  currentMenu_ = &adjLastShiftMenu_;
+  return true;
+}
+
+bool ui::increaseLastShiftMPC()
+{
+  core_.modifyLastShiftMaps(1, 0);
+  showNotification(1000, "Increased MPC map value by 1!");
+}
+
+bool ui::decreaseLastShiftMPC()
+{
+  core_.modifyLastShiftMaps(-1, 0);
+  showNotification(1000, "Decreased MPC map value by 1!");
+}
+
+bool ui::increaseLastShiftSPC()
+{
+  core_.modifyLastShiftMaps(0, 1);
+  showNotification(1000, "Increased SPC map value by 1!");
+}
+
+bool ui::decreaseLastShiftSPC()
+{
+  core_.modifyLastShiftMaps(0, -1);
+  showNotification(1000, "Decreased SPC map value by 1!");
 }
 
 bool ui::goToDualAxisMapEditorMenu()

@@ -98,8 +98,10 @@ class core
 		bool shifting_;
 		bool gearUpReq_;
 		bool gearDownReq_;
+
 		bool gearUpComm_;
 		bool gearDownComm_;
+
 		bool shiftPermission_;
 		bool usePreShiftDelay_ = false;
 		bool startWith1StGear_;
@@ -143,6 +145,7 @@ class core
 		loggableVariable variableToBeLogged_;
 		enum leverPos {P, R, N, D};
 		leverPos lever_;
+		bool dOrRengaged_;
 		enum shiftingMode {MAN, AUT};
 		shiftingMode shiftingMode_;
 
@@ -225,9 +228,11 @@ class core
 		void detectDriveType();
 		void updateAnalogMeasurements();
 		void updateLeverPosition();
+		void updateGearByN3N2Ratio();
 		void readShiftSwitches();
 		void doAutoShifts();
 		void updateLog();
+		void modifyLastShiftMaps(int MPCchange, int SPCchange);
 		void setLoggableVariable(core::loggableVariable var);
 		void setLoggingStatus(bool state);
 		void startNotificationTimer(int time); // time in ms
@@ -243,6 +248,7 @@ class core
 
 		void gearUpRequest();
 		void gearDownRequest();
+
 		void makeUpShiftCommand();
 		void makeDownShiftCommand();
 		void toggleAutoMan();

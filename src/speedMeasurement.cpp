@@ -1,10 +1,12 @@
 #include "../headers/speedMeasurement.h"  
 
-speedMeasurement::speedMeasurement(int interruptInterval, int minRPM, int maxRPM):
+speedMeasurement::speedMeasurement(int interruptInterval, int minRPM, int maxRPM, int maxAllowedPeriodLengthChangeBetweenMeasurements):
     interruptInterval_(interruptInterval),
     minRPM_(minRPM),
     maxRPM_(maxRPM)
 {
+    lowerFactorForLowPass_ = float((100 - maxAllowedPeriodLengthChangeBetweenMeasurements) / 100);
+    upperFactorForLowPass_ = float((100 + maxAllowedPeriodLengthChangeBetweenMeasurements) / 100);
 }
 
 speedMeasurement::~speedMeasurement()
@@ -33,33 +35,35 @@ void speedMeasurement::calcPeriodLength()
     counter_ = 0;
 }
 
-// lowpass filter, to be run with 1ms intervals. this basically limits the measured periodLength_ change to max 100us every 1ms
+// lowpass filter, to be run with 1ms intervals
 void speedMeasurement::useLowPass()
 {   
-    int cp = mem_; // store current period length
-    if (periodLength_ != 0 && cp > periodLength_ + 100) // if current period (cp) is 100us longer than last one
+    int cp = mem_; // store current period (cp) length
+    float diff = 0;
+    diff = cp / periodLength_;
+    if (diff > upperFactorForLowPass_)
     {
-        periodLength_ = periodLength_ + 100; // increase last one with 100us
+        periodLength_ = int(cp * upperFactorForLowPass_);
         return;
     }
-    else if (periodLength_ != 0 && cp <= periodLength_ - 100) // if current period (cp) is 100us shorter than last one
-    {        
-        periodLength_ = periodLength_ - 100; // shorten last one with 100us
+    else if (diff < lowerFactorForLowPass_)
+    {
+        periodLength_ = int(cp * lowerFactorForLowPass_);
         return;
     }
-    periodLength_ = cp; //if diff < 100, use current period as periodLength_
+    periodLength_ = cp;
 }
 
 // return RPM
 int speedMeasurement::giveRPM()
 {
-    //useLowPass(); // comment this if you want to disable low pass filter
-     periodLength_ = mem_; // uncomment this if you want to disable low pass filter
+    useLowPass(); // comment this if you want to disable low pass filter
+    //periodLength_ = mem_; // uncomment this if you want to disable low pass filter
     int rpm = calcConst_ / periodLength_;
     if (rpm < minRPM_ || counter_ > longestPeriodToAccept_)
     {
         periodLength_ = 0;
-        counter_ = longestPeriodToAccept_; // to prevent overflow
+        //counter_ = longestPeriodToAccept_; // to prevent overflow -> WHY DOES THIS CAUSE MEASUREMENT TO STUCK AT ZERO
         return 0;
     }
     else if (rpm > maxRPM_)
