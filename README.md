@@ -15,3 +15,7 @@ I have no deadline for the project, and the main target is to satisfy my own nee
 Sorry for the Finnish language comments left in the code. :D
 
 -Tuomas
+
+UPDATE 20.4.2024:
+Finally the PCB rev 0.4 got to be mature enough to test it in the car - see;
+https://www.youtube.com/watch?v=vycVulFN1EY
