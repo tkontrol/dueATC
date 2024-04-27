@@ -1,12 +1,13 @@
 #include "../headers/speedMeasurement.h"  
 
-speedMeasurement::speedMeasurement(int interruptInterval, int minRPM, int maxRPM, int maxAllowedPeriodLengthChangeBetweenMeasurements):
+speedMeasurement::speedMeasurement(int interruptInterval, int minRPM, int maxRPM, int maxAllowedPeriodLengthChangeBetweenMeasurements, bool readDualSignal):
     interruptInterval_(interruptInterval),
     minRPM_(minRPM),
-    maxRPM_(maxRPM)
+    maxRPM_(maxRPM),
+    readDualSignal_ (readDualSignal)
 {
-    lowerFactorForLowPass_ = float((100 - maxAllowedPeriodLengthChangeBetweenMeasurements) / 100);
-    upperFactorForLowPass_ = float((100 + maxAllowedPeriodLengthChangeBetweenMeasurements) / 100);
+    lowerFactorForLowPass_ = float((1000 - maxAllowedPeriodLengthChangeBetweenMeasurements) / 1000);
+    upperFactorForLowPass_ = float((1000 + maxAllowedPeriodLengthChangeBetweenMeasurements) / 1000);
 }
 
 speedMeasurement::~speedMeasurement()
@@ -31,7 +32,32 @@ void speedMeasurement::increaseCounter()
 // run on every rising edge
 void speedMeasurement::calcPeriodLength()
 {    
-    mem_ = counter_;
+    if (readDualSignal_)
+    {
+        if (evenOddCounter_ == 0)
+        {
+            evenOddCounter_++;           
+            dualMem1_ = counter_;
+        }
+        else
+        {
+            evenOddCounter_ = 0;
+            dualMem2_ = counter_;
+        }
+        // use larger of the values, for cases when the speed signal contains two independent period lenghts, and you are interested in the longer one
+        if (dualMem1_ > dualMem2_)
+        {
+            mem_ = dualMem2_;
+        }
+        else
+        {
+            mem_ = dualMem1_;
+        }
+    }
+    else
+    {
+        mem_ = counter_;
+    }
     counter_ = 0;
 }
 

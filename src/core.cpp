@@ -1,11 +1,11 @@
 #include "../headers/core.h"
 
 core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicleSpeedPin, int secondaryVehicleSpeedPin, int n2SpeedPin, int n3SpeedPin):
-    engineSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 100, 9999, 5)),
-    primaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999, 5)), // 2900 rpm ~ 270 km/h
+    engineSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 100, 9999, 5, true)),
+    primaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999, 3)), // 2900 rpm ~ 270 km/h
     secondaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999, 5)), // 2900 rpm ~ 270 km/h
-    n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 5)),
-    n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 5)),
+    n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 3)),
+    n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 3)),
     oilTemp_PN_Meas_(analogMeasurement(7, 10)), // 7 = pin A0    
     MAP_Meas_(analogMeasurement(6, 5)), // 6 = pin A1
     TPS_Meas_(analogMeasurement(5, 5)), // 5 = pin A2
@@ -17,9 +17,7 @@ core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicl
     targetGear_(2),
     brakePedal_(brakePedalSwitchPin),
     Pswitch_(PswitchPin),
-    Rswitch_(RswitchPin),
-    gearPlus_(gearPlusPin),
-    gearMinus_(gearMinusPin)
+    Rswitch_(RswitchPin)
 {}
 
 core::~core()
@@ -31,12 +29,10 @@ void core::initController()
     pinMode(brakePedalSwitchPin, INPUT_PULLUP);
     pinMode(PswitchPin, INPUT_PULLUP);
     pinMode(RswitchPin, INPUT_PULLUP);
-    pinMode(gearPlusPin, INPUT_PULLUP);
-    pinMode(gearMinusPin, INPUT_PULLUP);
 
     config_.initMaps();
     parametersPtr_ = config_.givePtrToConfigurationSet()->parameters; // receive pointer to parameters. otherwise than maps container pointer, this is used also by core
-    shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, usePreShiftDelay_, shifting_, lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_, dOrRengaged_);
+    shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, usePreShiftDelay_, shifting_, lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_, dOrRengaged_, engineSpeed_);
     TCCcontrol_.setOutputLimits(0, 100);
     TCCcontrol_.setMeasurementPointers(engineSpeed_, inputShaftSpeed_);
     TCCcontrol_.setTCCmode(tccMode_); // WHERE TO GET THIS SETTING?
@@ -76,15 +72,11 @@ void core::initController()
 
 void core::coreloop() // this is called in 1ms intervals, see main.cpp
 {     
-    gearPlus_.releaseBlock();
-    gearMinus_.releaseBlock();
-
     updateSpeedMeasurements(); //first one in loop, use these values during the loop
     detectDriveType();
     updateAnalogMeasurements();
     updateLeverPosition();
     updateGearByN3N2Ratio();
-    readShiftSwitches();
     doAutoShifts();
     makeUpShiftCommand();
     makeDownShiftCommand();
@@ -106,7 +98,7 @@ void core::startupProcedure()
     applyParameters();
     shifting_ = false;
 
-    usePreShiftDelay_ = true; //// //// REMOVE AFTER TESTING!!!!!!!!!!!!!!!!!!!!!!
+    usePreShiftDelay_ = false; //// //// REMOVE AFTER TESTING!!!!!!!!!!!!!!!!!!!!!!
 
     while (startupCounter_ < 100)
     {
@@ -116,7 +108,6 @@ void core::startupProcedure()
         updateLeverPosition();
         startupCounter_++;
     }
-    detectGear();
 }
 
 void core::applyParameters()
@@ -250,7 +241,9 @@ void core::updateSpeedMeasurements()
     primaryVehicleSpeed_ = primaryVehicleSpeedMeas_.giveRPM();
     secondaryVehicleSpeed_ = secondaryVehicleSpeedMeas_.giveRPM(); 
 
-    engineSpeed_ = engineSpeedMeas_.giveRPM();
+    engineSpeed_ = engineSpeedMeas_.giveRPM() - 100;
+    if (engineSpeed_ < 0) {engineSpeed_ = 0;}
+
     n2Speed_ = n2SpeedMeas_.giveRPM();
     n3Speed_ = n3SpeedMeas_.giveRPM();
     n3n2Ratio_ = float(n3Speed_) / float(n2Speed_);
@@ -367,7 +360,7 @@ void core::updateGearByN3N2Ratio()
         }
     }
 }
-
+/*
 void core::readShiftSwitches()
 {
     gearPlusSwitchState_ = gearPlus_.giveState();
@@ -379,7 +372,7 @@ void core::readShiftSwitches()
         if (gearMinusSwitchState_) {gearDownRequest();}
     }
 
-}
+} */
 
 void core::doAutoShifts()
 {  
@@ -402,10 +395,12 @@ void core::toggleAutoMan()
     if (shiftingMode_ == MAN)
     {
         shiftingMode_ = AUT;
+        usePreShiftDelay_ = true;
     }
     else if (shiftingMode_ == AUT)
     {
         shiftingMode_ = MAN;
+        usePreShiftDelay_ = false;
     }
 }
 
@@ -515,7 +510,7 @@ void core::modifyLastShiftMaps(int MPCchange, int SPCchange)
 
 void core::gearUpRequest() // for manual upshift, call this
 {
-    if (targetGear_ < 5)
+    if (shiftingMode_ == MAN && targetGear_ < 5 && !shifting_ && shiftPermission_)
     {
         targetGear_ ++;
     }
@@ -523,7 +518,7 @@ void core::gearUpRequest() // for manual upshift, call this
 
 void core::gearDownRequest() // for manual downshift, call this
 {   
-    if (targetGear_ > 1)
+    if (shiftingMode_ == MAN && targetGear_ > 1 && !shifting_ && shiftPermission_)
     {
         targetGear_ --;
     }
@@ -562,7 +557,6 @@ void core::makeDownShiftCommand()
     static int delayCounter = 0;
     static bool counting;
 
-
     if (gearDownReq_ && delayCounter == 0 && usePreShiftDelay_ ) //start shift after delay
     {
         counting = true;
@@ -584,96 +578,6 @@ void core::makeDownShiftCommand()
         delayCounter = 0;
         gearDownComm_ = true;
     }
-}
- 
-bool core::confirmGear(uint8_t gear)
-{ 
-
-}
- 
-bool core::detectGear()
-{ /*
-    uint8_t gear = 0;
-    switch (lever_)
-    {
-    case P:
-        if (n3n2Ratio_ < 0.5) // we can presume the vehicle is stationary here, since P
-        {
-            currentGear_ = targetGear_ = 1;
-        }
-        else
-        {
-            currentGear_ = targetGear_ = 2;
-            if (startWith1StGear_ && currentGear_ == 2 && !malfunctions_.activeMalfunctions)
-            {
-                gearDownComm_ = true; //here command, no need to create request
-            }            
-        }
-        break;
-
-    case R:
-        if (n3n2Ratio_ < 0.5) // this is the best guess, since speed might be too low to detect right gear accurately
-        {
-            currentGear_ = targetGear_ = 1;
-        }
-        else
-        {
-            currentGear_ = targetGear_ = 2;
-        }
-        break;
-
-    case N:
-        // TO BE IMPLEMENTED:
-        // BLOCK ALL ACTIONS HERE AND MAKE GEAR RATIO CHECK AFTER MOVING AWAY FROM N !
-
-        break;
-    
-    case D:
-        if (vehicleSpeed_ != 0) // ok, vehicle is moving and we get to measure the right gear
-        {      /*      
-            for (gear = 1; gear <= 5; gear++)
-            {
-                if (gear == 1 && confirmGear(gear))
-                {
-                    currentGear_ = targetGear_ = gear;
-                }
-                else if (gear == 2 && confirmGear(gear))
-                {
-                    currentGear_ = targetGear_ = gear;
-                }
-                else if (gear == 3 && confirmGear(gear))
-                {
-                    currentGear_ = targetGear_ = gear;
-                }
-                else if (gear == 4 && confirmGear(gear))
-                {
-                    currentGear_ = targetGear_ = gear;
-                }
-                else if (gear == 5 && confirmGear(gear))
-                {
-                    currentGear_ = targetGear_ = gear;
-                }
-                else // measured ratio does not match any gear, return false
-                {
-                    return false;
-                }
-            }           
-        }
-        else if (vehicleSpeed_ == 0) // vehicle is stationary
-        {
-            if (n3n2Ratio_ < 0.5) // this is the best guess...
-            {
-                currentGear_ = targetGear_ = 1;
-            }
-            else
-            {
-                currentGear_ = targetGear_ = 2;
-            }
-        }
-        break;
-    }  
-    return true; // ratio matches certain gear, all ok -> return true 
-    */
 }
 
 void core::setLoggableVariable(core::loggableVariable var)
@@ -780,8 +684,8 @@ struct core::dataStruct core::giveDataPointers()
     data_.brakePedalSwitch = &brakePedalSwitchState_; 
     data_.parkSwitch = &parkSwitchState_;
     data_.reverseSwitch = &reverseSwitchState_;
-    data_.gearPlusSwitch = &gearPlusSwitchState_;
-    data_.gearMinusSwitch = &gearMinusSwitchState_;     
+    //data_.gearPlusSwitch = &gearPlusSwitchState_;
+    //data_.gearMinusSwitch = &gearMinusSwitchState_;     
     data_.leverPosition = &lever_;
     data_.shifting = &shifting_;
     data_.shiftingMod = &shiftingMode_;

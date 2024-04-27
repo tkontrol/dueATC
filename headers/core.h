@@ -12,8 +12,8 @@
 #define brakePedalSwitchPin 27
 #define PswitchPin 25
 #define RswitchPin 23
-#define gearPlusPin 50
-#define gearMinusPin 52
+//#define gearPlusPin 50
+//#define gearMinusPin 52
 
 #define MALFUNCTIONMEMORY_MAX_SIZE 10 // how many malfunctions can be stored
 #define LOGGER_MAX_SIZE 500 // max cells in log struct
@@ -41,8 +41,8 @@ class core
 		binaryMeasurement brakePedal_;
 		binaryMeasurement Pswitch_;
 		binaryMeasurement Rswitch_;
-		binaryMeasurement gearPlus_;
-		binaryMeasurement gearMinus_;
+		//binaryMeasurement gearPlus_;
+		//binaryMeasurement gearMinus_;
 
 		shiftControl shiftControl_;
     	configHandler config_;
@@ -59,8 +59,8 @@ class core
 		bool brakePedalSwitchState_;
 		bool parkSwitchState_;
 		bool reverseSwitchState_;
-		bool gearPlusSwitchState_;
-		bool gearMinusSwitchState_;
+		//bool gearPlusSwitchState_;
+		//bool gearMinusSwitchState_;
 		int engineSpeed_;
 		int vehicleSpeed_;
 		int primaryVehicleSpeed_;
@@ -167,8 +167,6 @@ class core
 			bool* brakePedalSwitch;
 			bool* parkSwitch;
 			bool* reverseSwitch;
-			bool* gearPlusSwitch;
-			bool* gearMinusSwitch;
 			leverPos* leverPosition;
 			shiftingMode* shiftingMod;
 			TCCcontrol::TCCMode* tccMod;
@@ -229,7 +227,7 @@ class core
 		void updateAnalogMeasurements();
 		void updateLeverPosition();
 		void updateGearByN3N2Ratio();
-		void readShiftSwitches();
+		//void readShiftSwitches();
 		void doAutoShifts();
 		void updateLog();
 		void modifyLastShiftMaps(int MPCchange, int SPCchange);
@@ -253,8 +251,6 @@ class core
 		void makeDownShiftCommand();
 		void toggleAutoMan();
 		void toggleRatioDetection();
-		bool confirmGear(uint8_t gear);
-		bool detectGear();
 		bool giveMalfunctionStatus();
 		void clearFaultCodes();
 
