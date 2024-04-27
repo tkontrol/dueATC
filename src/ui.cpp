@@ -9,7 +9,9 @@ ui::ui():
     rightButton_(controlButton(rightButtonPin, true)),
     okButton_(controlButton(okButtonPin)),
     cancelButton_(controlButton(cancelButtonPin)),
-    autoModeSwitch_(controlButton(autoModeSwitchPin))
+    autoModeSwitch_(controlButton(autoModeSwitchPin)),
+    gearUp_(controlButton(gearUpPin)),
+    gearDown_(controlButton(gearDownPin))
 {
 
 }
@@ -57,7 +59,7 @@ void ui::runCoreLoop() // called in 1ms intervals
   loopEndTime_ = clock_;
 }
 
-void ui::runUiLoop()
+void ui::runUiLoop() //called in 100ms intervals
 {
   checkForMalfunction();
   checkPendingCoreNotifications();  
@@ -75,6 +77,21 @@ void ui::runUiLoop()
     okButton_.releaseBlock();
     cancelButton_.releaseBlock();
     updateMenu();
+  }
+  gearUp_.releaseBlock();
+  gearDown_.releaseBlock();
+  readShiftSwitches();
+}
+
+void ui::readShiftSwitches()
+{
+  if (gearUp_.giveSingleShot())
+  {
+    core_.gearUpRequest();
+  }
+  else if (gearDown_.giveSingleShot())
+  {
+    core_.gearDownRequest();
   }
 }
 
@@ -96,6 +113,8 @@ void ui::initUI()
   pinMode(okButtonPin, INPUT_PULLUP);
   pinMode(cancelButtonPin, INPUT_PULLUP); 
   pinMode(autoModeSwitchPin, INPUT_PULLUP);
+  pinMode(gearUpPin, INPUT_PULLUP);
+  pinMode(gearDownPin, INPUT_PULLUP);
 
   core_.initController();
   setScreenDataPointers();
@@ -371,6 +390,7 @@ bool ui::showMainScreen()
   if (downButton_.givePulse())
   {
     core_.toggleRatioDetection();
+    showNotification(1000, "Toggled gear ratio detection");
   }
 
   return cancelButton_.giveSingleShot();
@@ -521,11 +541,11 @@ void ui::drawMainScreen()
   screen_.setCursor(105, 53);
   screen_.print(*dataPtrs_.lastShiftDuration);
 
-  screen_.drawStr(52, 63, "DriveType");
+  screen_.drawStr(52, 63, "Transm.ratio:");
   screen_.setCursor(105, 63);
   if (*dataPtrs_.dType == configHandler::driveType::load)
   {
-    screen_.print("load");
+    screen_.print(*dataPtrs_.transmissionRatio);
   }
   else
   {
@@ -699,12 +719,12 @@ void ui::drawLiveData4()
   
   screen_.drawStr(0, firstLine+lineGap*2, "Gear + switch:");
   screen_.setCursor(columnXPos, firstLine+lineGap*2);
-  screen_.print(*dataPtrs_.gearPlusSwitch);  
+ // screen_.print(*dataPtrs_.gearPlusSwitch);  
   screen_.drawLine(0, firstLine+lineGap*2+1, 128, firstLine+lineGap*2+1);
   
   screen_.drawStr(0, firstLine+lineGap*3, "Gear - switch:");
   screen_.setCursor(columnXPos, firstLine+lineGap*3);
-  screen_.print(*dataPtrs_.gearMinusSwitch);  
+  //screen_.print(*dataPtrs_.gearMinusSwitch);  
   screen_.drawLine(0, firstLine+lineGap*3+1, 128, firstLine+lineGap*3+1);
    
   screen_.drawStr(0, firstLine+lineGap*4, "Brake pedal switch:");

@@ -13,6 +13,8 @@
 #define rightButtonPin 14
 #define okButtonPin 19
 #define cancelButtonPin 18
+#define gearUpPin 50
+#define gearDownPin 52
 
 
 class ui
@@ -45,10 +47,12 @@ class ui
 		controlButton okButton_;
 		controlButton cancelButton_;
 		controlButton autoModeSwitch_;
+		controlButton gearUp_;
+		controlButton gearDown_;
 
 		int loopTimeCounter_;
 		int loopsPerSecond_;
-		int plotTime_ = 10; // default time for plot, seconds
+		int plotTime_ = 10; // default plot time scale, seconds
 		float yLeftMax_ = 0;
 		float yRightMax_ = 0;	
 
@@ -62,7 +66,6 @@ class ui
 		uint8_t editorRow_ = 0; // for map editor
 		uint8_t editorColumn_ = 0; // for map editor
 		bool editingMode_; // for map editor
-
 	
 		bool notificationActive_;
 		String notificationMessage_;
@@ -217,6 +220,7 @@ class ui
 
 		void runCoreLoop();
 		void runUiLoop();
+		void readShiftSwitches();
 		void printLoopDuration();
 		void initUI();
 
