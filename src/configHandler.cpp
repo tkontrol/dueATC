@@ -16,11 +16,11 @@ void configHandler::initMaps()
     setObjectIDs();
 }
 
-void configHandler::setObjectIDs() // sets ID's for every object as they exist in config file
+void configHandler::setObjectIDs() // sets IDs for every object as they exist in config file
 {
-    Automode_gearMap_.ID = String("Automode_wanted_gear_map"); Automode_gearMap_.minData = 0; Automode_gearMap_.maxData = 200;
-    Shift_solenoid_time_map_.ID = String("Shift_solenoid_time_map"); Shift_solenoid_time_map_.minData = 200; Shift_solenoid_time_map_.maxData = 2500;
-    MPC_regularDrive_.ID = String("MPC_normalDrive"); MPC_regularDrive_.minData = 0; MPC_regularDrive_.maxData = 100;
+    Automode_gearMap_= {"Automode_wanted_gear_map", 0, 200};
+    Shift_solenoid_time_map_ = {"Shift_solenoid_time_map", 200, 2500};
+    MPC_regularDrive_ = {"MPC_normalDrive", 0, 100};
 
     MPC_1to2_load_ = {"MPC_1to2_load", 0, 100};
     MPC_2to3_load_ = {"MPC_2to3_load", 0, 100};
@@ -59,13 +59,14 @@ void configHandler::setObjectIDs() // sets ID's for every object as they exist i
     shiftTimeTargetMap_ = {"Shift_time_target_map", 200, 2000};
 
     //shiftTimeTargetMap_.ID = String("Shift_time_target_map"); shiftTimeTargetMap_.minData = 200; shiftTimeTargetMap_.maxData = 2000;
-    engSpdLoadFactorMap_.ID = String("Eng_spd_load_factor"); engSpdLoadFactorMap_.minData = 0; engSpdLoadFactorMap_.maxData = 100;
-    MAPLinearizationMap_.ID = String("MAP_linearization_map"); MAPLinearizationMap_.minData = 0; MAPLinearizationMap_.maxData = 5000;
-    TPSLinearizationMap_.ID = String("TPS_linearization_map"); TPSLinearizationMap_.minData = 0; TPSLinearizationMap_.maxData = 5000;
-    oilTempMap_.ID = String("ATF_temp_sensor_linearization"); oilTempMap_.minData = 0; oilTempMap_.maxData = 3000;
+    engSpdLoadFactorMap_ = {"Eng_spd_load_factor", 0, 100};
+    engSpdOilPressureCorrectionMap_ = {"Eng_spd_oil_press_correction", 0, 100};
+    MAPLinearizationMap_ = {"MAP_linearization_map", 0, 5000};
+    TPSLinearizationMap_ = {"TPS_linearization_map", 0, 5000};
+    oilTempMap_ = {"ATF_temp_sensor_linearization", 0, 3000};
 
     startWith1StGear_.ID = String("Start_with_1St_gear"); startWith1StGear_.minData = 0; startWith1StGear_.maxData = 1;
-    minimumVehicleSpeedForGearRatioDetection_.ID = String("Min_vehicle_spd_for_gear_ratio_detection"); minimumVehicleSpeedForGearRatioDetection_.minData = 0; minimumVehicleSpeedForGearRatioDetection_.maxData = 270;
+    minimumVehicleSpeedForGearRatioDetection_.ID = String("Min_vehicle_spd_for_gear_ratio_detection"); minimumVehicleSpeedForGearRatioDetection_.minData = 0; minimumVehicleSpeedForGearRatioDetection_.maxData = 100;
     wheelCircum_.ID = String("Wheel_circum"); wheelCircum_.minData = 1000; wheelCircum_.maxData = 3000;
     finalDriveRatiox100_ = {"Final_drive_ratio_x100", 100, 600};
     brightness_.ID = String("Screen_brightness"); brightness_.minData = 0; brightness_.maxData = 100;
@@ -319,6 +320,11 @@ int configHandler::giveMAPValue(int voltage)
 int configHandler::giveEngSpdLoadFactorValue(int engineSpeed)
 {
     return readSingleAxisMap(&engSpdLoadFactorMap_, engineSpeed);
+}
+
+int configHandler::giveEngSpdOilPressCorrectionValue(int engineSpeed)
+{
+    return readSingleAxisMap(&engSpdOilPressureCorrectionMap_, engineSpeed);
 }
 
 int configHandler::giveShiftTimeTargetValue(uint8_t load)

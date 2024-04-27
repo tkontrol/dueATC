@@ -11,7 +11,7 @@ shiftControl::~shiftControl()
 }
 
 void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, uint8_t &SPC, configHandler::driveType &driveType, int &oilTemp, uint8_t &load,
- uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, bool &shifting, int &lastShiftDuration, float &transmissionRatio, bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged)
+ uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, bool &shifting, int &lastShiftDuration, float &transmissionRatio, bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed)
 {
     config_ = &configHandler;
     MPC_ = &MPC;
@@ -30,6 +30,7 @@ void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, 
     useGearRatioDetection_ = &useGearRatioDetection;
     shiftPermission_ = &shiftPermission;
     dOrRengaged_ = &dOrRengaged;
+    engineSpeed_ = &engineSpeed;
     pinMode(SOL_12_45, OUTPUT);
     pinMode(SOL_23, OUTPUT);
     pinMode(SOL_34, OUTPUT);
@@ -136,12 +137,13 @@ void shiftControl::controlPressureSolenoids()
         *SPC_ = 100;
     }   
 
+    // following three lines are to compensate oil pump capacity in low engine rews
+    int correction = config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_);
+    *MPC_ = *MPC_ + correction;
+    *SPC_ = *SPC_ + correction;
+
     REG_PWM_CDTYUPD0 = *MPC_; //pin 34/35, control the MPC solenoid
     REG_PWM_CDTYUPD1 = *SPC_; //pin 36/37, control the SPC solenoid   
-    //Serial.print("MPC: ");
-    //Serial.println(*MPC_);
-    //Serial.print("  SPC: ");
-    //Serial.println(*SPC_);
 }
 
 // activate both shift control & pressure control solenoids, when shift starts
@@ -229,7 +231,7 @@ uint8_t shiftControl::checkIfTransmissionRatioMatchesAnyGear()
 // return true if transmission ratio matches given gear
 bool shiftControl::checkIfTransmissionRatioMatchesForGear(uint8_t gear)
 {
-    float gap = 0.1;
+    float gap = 0.05;
     switch(gear)
     {
     case 1:
@@ -270,7 +272,7 @@ void shiftControl::checkIfPreshiftDelayIsNeeded()
     static int delayCounter = 0;
     static bool counting;
 
-    if (!*usePreShiftDelay_)
+    if (!*usePreShiftDelay_) // direct shift without delay
     {
         targetGearDelayed_ = *targetGear_;
     }
@@ -284,11 +286,19 @@ void shiftControl::checkIfPreshiftDelayIsNeeded()
         {
             delayCounter++;
         }
-        if (delayCounter == 10) 
+        if (delayCounter == 500) 
         {
             counting = false;
             delayCounter = 0;
-             targetGearDelayed_ = *targetGear_;
+            if (*targetGear_ > *currentGear_)
+            {
+                targetGearDelayed_++;
+            }
+            else if (*targetGear_ < *currentGear_)
+            {
+                targetGearDelayed_--;
+            }
+            //targetGearDelayed_ = *targetGear_;
         }
     }
 }

@@ -96,6 +96,7 @@ class configHandler
 		int giveTPSValue(int voltage);
 		int giveMAPValue(int voltage);
 		int giveEngSpdLoadFactorValue(int engineSpeed);
+		int giveEngSpdOilPressCorrectionValue(int engineSpeed);
 		int giveShiftTimeTargetValue(uint8_t load);
 		int giveShiftSolenoidTimeValue(int oil, uint8_t mpcVal);
 		struct dualAxisMap* identifyShiftMap(shiftType stype, driveType dtype);
@@ -180,14 +181,15 @@ class configHandler
 
 		singleAxisMap shiftTimeTargetMap_;
 		singleAxisMap engSpdLoadFactorMap_;
+		singleAxisMap engSpdOilPressureCorrectionMap_;
 		singleAxisMap TPSLinearizationMap_;
 		singleAxisMap MAPLinearizationMap_;
 		singleAxisMap oilTempMap_;
 		
 
-		const uint8_t singleAxisMapsAmount_ = 5; // remember to update after adding maps
+		const uint8_t singleAxisMapsAmount_ = 6; // remember to update after adding maps
 
-		singleAxisMap* singleAxisMaps_[5] = {&shiftTimeTargetMap_, &engSpdLoadFactorMap_, &TPSLinearizationMap_, &MAPLinearizationMap_, &oilTempMap_};
+		singleAxisMap* singleAxisMaps_[6] = {&shiftTimeTargetMap_, &engSpdLoadFactorMap_, &engSpdOilPressureCorrectionMap_, &TPSLinearizationMap_, &MAPLinearizationMap_, &oilTempMap_};
 
 		parameter tccControlPfactor_;
 		parameter tccControlIfactor_;	
