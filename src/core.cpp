@@ -83,6 +83,8 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     shiftControl_.runShifts();
     updateLog();
     brakePedalSwitchState_ = brakePedal_.giveState();
+    measuredGear_ = shiftControl_.checkIfTransmissionRatioMatchesAnyGear();
+    if (!configOK_) {shiftingMode_ = MAN;}
 
     //analogWrite(2, 0); // WHAT DOES THIS CAUSE??
 
@@ -98,16 +100,20 @@ void core::startupProcedure()
     applyParameters();
     shifting_ = false;
 
+    configOK_ = config_.checkConfigStatus();
+
     usePreShiftDelay_ = false; //// //// REMOVE AFTER TESTING!!!!!!!!!!!!!!!!!!!!!!
 
-    while (startupCounter_ < 100)
+    while (startupCounter_ < 2000)
     {
         updateSpeedMeasurements();
         detectDriveType();
         updateAnalogMeasurements();
         updateLeverPosition();
+        measuredGear_ = shiftControl_.checkIfTransmissionRatioMatchesAnyGear();
         startupCounter_++;
     }
+
 }
 
 void core::applyParameters()
@@ -158,17 +164,22 @@ void core::updateParameter(configHandler::parameter* p)
     {
         finalDriveRatioX100_ = p->data;
     }
-
 }
 
 String core::readConfFile()
 {
-    return config_.readSDCardToDataStructs("CONF.CFG");
+    String msg = config_.readSDCardToDataStructs("CONF.CFG");
+    configOK_ = config_.checkConfigStatus();
+    if (!configOK_) {shiftingMode_ = MAN;}
+    return msg;
 }
 
 String core::readDefaultsFile()
 {
-    return config_.readSDCardToDataStructs("ORICONF.CFG");
+    String msg = config_.readSDCardToDataStructs("ORICONF.CFG");
+    configOK_ = config_.checkConfigStatus();
+    if (!configOK_) {shiftingMode_ = MAN;}
+    return msg;
 }
 
 String core::writeConfFile()
@@ -176,44 +187,44 @@ String core::writeConfFile()
     return config_.writeDataStructsToSDCard("CONF.CFG"); 
 }
 
-void core::increaseSpeedMeasCounters()
+void core::increaseSpeedMeasCounters() // this is called in 10 us intervals
 {
     engineSpeedMeas_.increaseCounter();
     primaryVehicleSpeedMeas_.increaseCounter();
     secondaryVehicleSpeedMeas_.increaseCounter();
     n3SpeedMeas_.increaseCounter();
     n2SpeedMeas_.increaseCounter();
-    clock_++; //POISTA
+    clock_++; // for core loop length calculation
 }
 
 void core::engineSpeedMeas() // run on rising edge of signal, update the variable
 {
-    engineSpeedMeas_.calcPeriodLength();    
+    engineSpeedMeas_.updatePeriodLength();    
 }
 
 void core::primaryVehicleSpeedMeas() // run on rising edge of signal, update the variable
 {    
-    primaryVehicleSpeedMeas_.calcPeriodLength();
+    primaryVehicleSpeedMeas_.updatePeriodLength();
 }
 
 void core::secondaryVehicleSpeedMeas() // run on rising edge of signal, update the variable
 {    
-    secondaryVehicleSpeedMeas_.calcPeriodLength();
+    secondaryVehicleSpeedMeas_.updatePeriodLength();
 }
 
 void core::n2SpeedMeas() // run on rising edge of signal, update the variable
 {
-    n2SpeedMeas_.calcPeriodLength();
+    n2SpeedMeas_.updatePeriodLength();
 }
 
 void core::n3SpeedMeas() // run on rising edge of signal, update the variable
 {
-    n3SpeedMeas_.calcPeriodLength();
+    n3SpeedMeas_.updatePeriodLength();
 }
 
 void core::updateSpeedMeasurements()
 {
-    measMode_ = primary;
+    measMode_ = primary; // for testing
 
     int usedVehicleSpeedPeriodLength;
 
@@ -241,8 +252,9 @@ void core::updateSpeedMeasurements()
     primaryVehicleSpeed_ = primaryVehicleSpeedMeas_.giveRPM();
     secondaryVehicleSpeed_ = secondaryVehicleSpeedMeas_.giveRPM(); 
 
-    engineSpeed_ = engineSpeedMeas_.giveRPM() - 100;
-    if (engineSpeed_ < 0) {engineSpeed_ = 0;}
+    engineSpeed_ = engineSpeedMeas_.giveRPM() *1.35;
+    //engineSpeed_ = engineSpeedMeas_.giveRPM() - 100;
+    //if (engineSpeed_ < 0) {engineSpeed_ = 0;}
 
     n2Speed_ = n2SpeedMeas_.giveRPM();
     n3Speed_ = n3SpeedMeas_.giveRPM();
@@ -261,7 +273,30 @@ void core::updateSpeedMeasurements()
 
     tcSlip_ = abs(engineSpeed_ - inputShaftSpeed_);
 
-    transmissionRatio_.ratio = float(inputShaftSpeed_) / float(cardanShaftSpeed_); 
+    static int ratioLowPassCounter = 0;
+    static float transmratioPrev = 0.00;
+
+    if (ratioLowPassCounter == 100)
+    {
+        transmissionRatio_.ratio = float(inputShaftSpeed_) / float(cardanShaftSpeed_); 
+
+        if (transmissionRatio_.ratio > transmratioPrev + 0.01)
+        {
+            transmissionRatio_.ratio = transmissionRatio_.ratio + 0.01;
+        }
+        else if (transmissionRatio_.ratio < transmratioPrev - 0.01)
+        {
+            transmissionRatio_.ratio = transmissionRatio_.ratio - 0.01;
+        }
+
+        transmratioPrev = transmissionRatio_.ratio;
+        ratioLowPassCounter = 0;
+    } 
+    ratioLowPassCounter++;  
+    
+
+    //transmissionRatio_.ratio = float(inputShaftSpeed_) / float(cardanShaftSpeed_); 
+
     transmissionRatio_.isValid = true;
 }
 
@@ -323,27 +358,47 @@ void core::updateLeverPosition()
 
     parkSwitchState_ = Pswitch_.giveState();
     reverseSwitchState_ = Rswitch_.giveState();
+
+    static leverPos leverPosCandidate;
+    static leverPos leverPosCandidatePrev;
+    static int leverPosCounter; // delay for low-pass filter
     
     if (parkSwitchState_ && !reverseSwitchState_ && PNbyTempSens)
     {
-        lever_ = P;
+        leverPosCandidate = P;
         dOrRengaged_ = false;
     }
     else if (!parkSwitchState_ && reverseSwitchState_ && !PNbyTempSens)
     {
-        lever_ = R;
+        leverPosCandidate = R;
         dOrRengaged_ = true;
     }
     else if (!parkSwitchState_ && !reverseSwitchState_ && PNbyTempSens)
     {
-        lever_ = N;
+        leverPosCandidate = N;
         dOrRengaged_ = false;
     }
     else if(!parkSwitchState_ && !reverseSwitchState_ && !PNbyTempSens)
     {
-        lever_ = D;
+        leverPosCandidate = D;
         dOrRengaged_ = true;
     }
+
+    // following if-elses are for low-pass filtering
+    if (leverPosCandidate == leverPosCandidatePrev)
+    {
+        leverPosCounter++;
+    }
+    else
+    {
+        leverPosCounter = 0;
+    }
+    if (leverPosCounter >= 500)
+    {
+        leverPosCounter = 500; // to prevent overflow
+        lever_ = leverPosCandidate;
+    } 
+    leverPosCandidatePrev = leverPosCandidate;
 }
 
 void core::updateGearByN3N2Ratio()
@@ -374,6 +429,14 @@ void core::readShiftSwitches()
 
 } */
 
+void core::forceGearVariables()
+{
+    if (measuredGear_ != 0)
+    {
+        shiftControl_.forceGearVariables(measuredGear_);
+    }
+}
+
 void core::doAutoShifts()
 {  
     if (shiftingMode_ == AUT && !shifting_)
@@ -392,7 +455,7 @@ void core::doAutoShifts()
 
 void core::toggleAutoMan()
 {
-    if (shiftingMode_ == MAN)
+    if (shiftingMode_ == MAN && configOK_)
     {
         shiftingMode_ = AUT;
         usePreShiftDelay_ = true;
@@ -676,6 +739,7 @@ struct core::dataStruct core::giveDataPointers()
     data_.lastShiftDuration = &lastShiftDuration_;
     data_.currentGear = &currentGear_;
     data_.targetGear = &targetGear_;
+    data_.measuredGear = &measuredGear_;
     data_.autoModeTargetGear = &autoModeTargetGear_;
     data_.engineSpeed = &engineSpeed_;
     data_.vehicleSpeed = &vehicleSpeed_;
