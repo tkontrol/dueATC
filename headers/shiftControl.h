@@ -35,8 +35,7 @@ class shiftControl
 		int* engineSpeed_;
 
 		void checkIfPreshiftDelayIsNeeded();
-		void activateSolenoids();
-		uint8_t checkIfTransmissionRatioMatchesAnyGear();
+		void activateSolenoids();		
 		bool checkIfTransmissionRatioMatchesForGear(uint8_t gear);
 		void controlPressureSolenoids();
 
@@ -50,6 +49,7 @@ class shiftControl
 		bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed);
 		void runShifts();
 		void forceGearVariables(uint8_t gear);
+		uint8_t checkIfTransmissionRatioMatchesAnyGear();
 
 };
 #endif

@@ -16,64 +16,63 @@ void configHandler::initMaps()
     setObjectIDs();
 }
 
-void configHandler::setObjectIDs() // sets IDs for every object as they exist in config file
+void configHandler::setObjectIDs() // sets IDs for every object as they exist in config file. also set min, max and default values
 {
     Automode_gearMap_= {"Automode_wanted_gear_map", 0, 200};
-    Shift_solenoid_time_map_ = {"Shift_solenoid_time_map", 200, 2500};
-    MPC_regularDrive_ = {"MPC_normalDrive", 0, 100};
+    Shift_solenoid_time_map_ = {"Shift_solenoid_time_map", 200, 2500, 1000};
+    MPC_regularDrive_ = {"MPC_normalDrive", 0, 100, 100};
 
-    MPC_1to2_load_ = {"MPC_1to2_load", 0, 100};
-    MPC_2to3_load_ = {"MPC_2to3_load", 0, 100};
-    MPC_3to4_load_ = {"MPC_3to4_load", 0, 100};
-    MPC_4to5_load_ = {"MPC_4to5_load", 0, 100};
-    MPC_5to4_load_ = {"MPC_5to4_load", 0, 100};
-    MPC_4to3_load_ = {"MPC_4to3_load", 0, 100};
-    MPC_3to2_load_ = {"MPC_3to2_load", 0, 100};
-    MPC_2to1_load_ = {"MPC_2to1_load", 0, 100};	
-	MPC_1to2_coast_ = {"MPC_1to2_coast", 0, 100};
-    MPC_2to3_coast_ = {"MPC_2to3_coast", 0, 100};
-    MPC_3to4_coast_ = {"MPC_3to4_coast", 0, 100};
-    MPC_4to5_coast_ = {"MPC_4to5_coast", 0, 100};
-    MPC_5to4_coast_ = {"MPC_5to4_coast", 0, 100};
-    MPC_4to3_coast_ = {"MPC_4to3_coast", 0, 100};
-    MPC_3to2_coast_ = {"MPC_3to2_coast", 0, 100};
-    MPC_2to1_coast_ = {"MPC_2to1_coast", 0, 100};
+    MPC_1to2_load_ = {"MPC_1to2_load", 0, 100, 100};
+    MPC_2to3_load_ = {"MPC_2to3_load", 0, 100, 100};
+    MPC_3to4_load_ = {"MPC_3to4_load", 0, 100, 100};
+    MPC_4to5_load_ = {"MPC_4to5_load", 0, 100, 100};
+    MPC_5to4_load_ = {"MPC_5to4_load", 0, 100, 100};
+    MPC_4to3_load_ = {"MPC_4to3_load", 0, 100, 100};
+    MPC_3to2_load_ = {"MPC_3to2_load", 0, 100, 100};
+    MPC_2to1_load_ = {"MPC_2to1_load", 0, 100, 100};	
+	MPC_1to2_coast_ = {"MPC_1to2_coast", 0, 100, 100};
+    MPC_2to3_coast_ = {"MPC_2to3_coast", 0, 100, 100};
+    MPC_3to4_coast_ = {"MPC_3to4_coast", 0, 100, 100};
+    MPC_4to5_coast_ = {"MPC_4to5_coast", 0, 100, 100};
+    MPC_5to4_coast_ = {"MPC_5to4_coast", 0, 100, 100};
+    MPC_4to3_coast_ = {"MPC_4to3_coast", 0, 100, 100};
+    MPC_3to2_coast_ = {"MPC_3to2_coast", 0, 100, 100};
+    MPC_2to1_coast_ = {"MPC_2to1_coast", 0, 100, 100};
 	
-    SPC_1to2_load_ = {"SPC_1to2_load", 0, 100};
-    SPC_2to3_load_ = {"SPC_2to3_load", 0, 100};
-    SPC_3to4_load_ = {"SPC_3to4_load", 0, 100};
-    SPC_4to5_load_ = {"SPC_4to5_load", 0, 100};
-    SPC_5to4_load_ = {"SPC_5to4_load", 0, 100};
-    SPC_4to3_load_ = {"SPC_4to3_load", 0, 100};
-    SPC_3to2_load_ = {"SPC_3to2_load", 0, 100};
-    SPC_2to1_load_ = {"SPC_2to1_load", 0, 100};	
-	SPC_1to2_coast_ = {"SPC_1to2_coast", 0, 100};
-    SPC_2to3_coast_ = {"SPC_2to3_coast", 0, 100};
-    SPC_3to4_coast_ = {"SPC_3to4_coast", 0, 100};
-    SPC_4to5_coast_ = {"SPC_4to5_coast", 0, 100};
-    SPC_5to4_coast_ = {"SPC_5to4_coast", 0, 100};
-    SPC_4to3_coast_ = {"SPC_4to3_coast", 0, 100};
-    SPC_3to2_coast_ = {"SPC_3to2_coast", 0, 100};
-    SPC_2to1_coast_ = {"SPC_2to1_coast", 0, 100};
+    SPC_1to2_load_ = {"SPC_1to2_load", 0, 100, 100};
+    SPC_2to3_load_ = {"SPC_2to3_load", 0, 100, 100};
+    SPC_3to4_load_ = {"SPC_3to4_load", 0, 100, 100};
+    SPC_4to5_load_ = {"SPC_4to5_load", 0, 100, 100};
+    SPC_5to4_load_ = {"SPC_5to4_load", 0, 100, 100};
+    SPC_4to3_load_ = {"SPC_4to3_load", 0, 100, 100};
+    SPC_3to2_load_ = {"SPC_3to2_load", 0, 100, 100};
+    SPC_2to1_load_ = {"SPC_2to1_load", 0, 100, 100};	
+	SPC_1to2_coast_ = {"SPC_1to2_coast", 0, 100, 100};
+    SPC_2to3_coast_ = {"SPC_2to3_coast", 0, 100, 100};
+    SPC_3to4_coast_ = {"SPC_3to4_coast", 0, 100, 100};
+    SPC_4to5_coast_ = {"SPC_4to5_coast", 0, 100, 100};
+    SPC_5to4_coast_ = {"SPC_5to4_coast", 0, 100, 100};
+    SPC_4to3_coast_ = {"SPC_4to3_coast", 0, 100, 100};
+    SPC_3to2_coast_ = {"SPC_3to2_coast", 0, 100, 100};
+    SPC_2to1_coast_ = {"SPC_2to1_coast", 0, 100, 100};
 
-    shiftTimeTargetMap_ = {"Shift_time_target_map", 200, 2000};
+    shiftTimeTargetMap_ = {"Shift_time_target_map", 200, 2000}; // this is still not used anywhere!!
+    engSpdLoadFactorMap_ = {"Eng_spd_load_factor", 0, 100}; // this is still not used anywhere!!
 
-    //shiftTimeTargetMap_.ID = String("Shift_time_target_map"); shiftTimeTargetMap_.minData = 200; shiftTimeTargetMap_.maxData = 2000;
-    engSpdLoadFactorMap_ = {"Eng_spd_load_factor", 0, 100};
-    engSpdOilPressureCorrectionMap_ = {"Eng_spd_oil_press_correction", 0, 100};
-    MAPLinearizationMap_ = {"MAP_linearization_map", 0, 5000};
-    TPSLinearizationMap_ = {"TPS_linearization_map", 0, 5000};
-    oilTempMap_ = {"ATF_temp_sensor_linearization", 0, 3000};
+    engSpdOilPressureCorrectionMap_ = {"Eng_spd_oil_press_correction", 0, 100, 0};
+    MAPLinearizationMap_ = {"MAP_linearization_map", 0, 5000, 0};
+    TPSLinearizationMap_ = {"TPS_linearization_map", 0, 5000, 0};
+    oilTempMap_ = {"ATF_temp_sensor_linearization", 0, 3000, 0};
 
-    startWith1StGear_.ID = String("Start_with_1St_gear"); startWith1StGear_.minData = 0; startWith1StGear_.maxData = 1;
-    minimumVehicleSpeedForGearRatioDetection_.ID = String("Min_vehicle_spd_for_gear_ratio_detection"); minimumVehicleSpeedForGearRatioDetection_.minData = 0; minimumVehicleSpeedForGearRatioDetection_.maxData = 100;
-    wheelCircum_.ID = String("Wheel_circum"); wheelCircum_.minData = 1000; wheelCircum_.maxData = 3000;
+    startWith1StGear_ = {"Start_with_1St_gear", 0, 1, 0};
+    minimumVehicleSpeedForGearRatioDetection_ = {"Min_vehicle_spd_for_gear_ratio_detection", 0, 100, 100};
+    wheelCircum_ = {"Wheel_circum", 1000, 3000, 2000};
     finalDriveRatiox100_ = {"Final_drive_ratio_x100", 100, 600};
-    brightness_.ID = String("Screen_brightness"); brightness_.minData = 0; brightness_.maxData = 100;
-    engineSpeedPulsesPerRev_.ID = String("engineSpeed_Pulses_Per_Revolution"); engineSpeedPulsesPerRev_.minData = 1; engineSpeedPulsesPerRev_.maxData = 100;
-    driveShaftPulsesPerRev_.ID = String("driveShaft_Pulses_Per_Revolution"); driveShaftPulsesPerRev_.minData = 1; driveShaftPulsesPerRev_.maxData = 100;
-    tccControlPfactor_.ID = String("TCC_PI_control_P_factor"); tccControlPfactor_.minData = 1; tccControlPfactor_.maxData = 1000;
-    tccControlIfactor_.ID = String("TCC_PI_control_I_factor"); tccControlIfactor_.minData = 1; tccControlIfactor_.maxData = 1000;
+    brightness_ = {"Screen_brightness", 0, 100, 100};
+    engineSpeedPulsesPerRev_ = {"engineSpeed_Pulses_Per_Revolution", 1, 100, 1};
+    driveShaftPulsesPerRev_ = {"driveShaft_Pulses_Per_Revolution", 1, 100, 1};
+    tccControlPfactor_ = {"TCC_PI_control_P_factor", 1, 1000, 0};
+    tccControlIfactor_ = {"TCC_PI_control_I_factor", 1, 1000, 0};
 }
 /*
 void configHandler::printObjectsToSerial()
@@ -85,7 +84,7 @@ void configHandler::printObjectsToSerial()
         Serial.print(": ");
         Serial.print(parameters_[i]->data);
         Serial.print(", luettu: ");
-        Serial.println(parameters_[i]->readFromSD);
+        Serial.println(parameters_[i]->foundFromSD);
     }
 
     Serial.print("\nSinkkukartat: \n");
@@ -95,7 +94,7 @@ void configHandler::printObjectsToSerial()
         Serial.print(", sarakkeita: ");
         Serial.print(singleAxisMaps_[i]->columns);
         Serial.print(", luettu: ");
-        Serial.println(singleAxisMaps_[i]->readFromSD);
+        Serial.println(singleAxisMaps_[i]->foundFromSD);
     }
  
     Serial.print("\nKaksiakselikartat:\n ");
@@ -107,7 +106,7 @@ void configHandler::printObjectsToSerial()
         Serial.print(", sarakkeita: ");
         Serial.print(dualAxisMaps_[i]->columns);
         Serial.print(", luettu: ");
-        Serial.println(dualAxisMaps_[i]->readFromSD);
+        Serial.println(dualAxisMaps_[i]->foundFromSD);
     } 
 } */
 
@@ -575,6 +574,11 @@ int configHandler::readDualAxisMap(dualAxisMap* map, int rowVal, int colVal)
 // return a value from a given position
 int configHandler::readDualAxisMap(dualAxisMap* map, int rowVal, int colVal)
 {
+    if (!map->foundFromSD)
+    {
+        return map->defaultData; // if map didn't exist in SD card, return default value
+    }
+
     int i = 0;
     uint8_t rowToSubtract = 1;
     uint8_t colToSubtract = 1;
@@ -635,6 +639,11 @@ int configHandler::readDualAxisMap(dualAxisMap* map, int rowVal, int colVal)
 // return map data as function of column titles
 int configHandler::readSingleAxisMap(singleAxisMap* map, int colVal)
 {
+    if (!map->foundFromSD)
+    {
+        return map->defaultData; // if map didn't exist in SD card, return default value
+    }
+
     if (colVal <= map->columnTitles[0]) // smaller or as small as the smallest in column
     { 
         return map->data[0];
@@ -759,6 +768,7 @@ String configHandler::readSDCardToDataStructs(char filename[])
     clearConfigReadFlags();
     if (!SD.begin(chipSelectPin_))
     {
+        replaceMissingDataWithDefaults();
         return "No SD card detected! No data read to RAM!";
     }
     // re-open the file for reading:
@@ -825,7 +835,7 @@ String configHandler::readSDCardToDataStructs(char filename[])
                                 if (currObjID.equals(parameters_[mapLoc]->ID))
                                 {
                                     parameters_[mapLoc]->data = currObjData[0]; // if parameter, only first of array to be set
-                                    parameters_[mapLoc]->readFromSD = true; // set flag
+                                    parameters_[mapLoc]->foundFromSD = true; // set flag
                                 }
                             }
                         }
@@ -850,7 +860,7 @@ String configHandler::readSDCardToDataStructs(char filename[])
                                             singleAxisMaps_[mapLoc]->data[i] = currObjData[counter];
                                             counter++;
                                         }
-                                        singleAxisMaps_[mapLoc]->readFromSD = true; // set the flag
+                                        singleAxisMaps_[mapLoc]->foundFromSD = true; // set the flag
                                     }
                                 }
                             }
@@ -885,7 +895,7 @@ String configHandler::readSDCardToDataStructs(char filename[])
                                                 counter++;
                                             }
                                         }
-                                        dualAxisMaps_[mapLoc]->readFromSD = true; // set the flag
+                                        dualAxisMaps_[mapLoc]->foundFromSD = true; // set the flag
                                     }
                                 }
                             }                    
@@ -917,6 +927,7 @@ String configHandler::readSDCardToDataStructs(char filename[])
             String msg = String("Not all config was found from SD card! Fix the ");
             msg.concat(filename);
             msg.concat(" file!");
+            replaceMissingDataWithDefaults();
             return msg;   
         }
     }
@@ -926,6 +937,7 @@ String configHandler::readSDCardToDataStructs(char filename[])
         // if the file didn't open
         String msg = String("Couldn't find config file ");
         msg.concat(filename);
+        replaceMissingDataWithDefaults();
         return msg;
     } 
 }
@@ -943,7 +955,7 @@ String configHandler::writeDataStructsToSDCard(char filename[])
         {
         for (int i = 0; i < parametersAmount_; i++) // then single axis maps
         {
-            if (parameters_[i]->readFromSD) // write only if the parameter is read from the card initially, as in there is sth to write back
+            if (parameters_[i]->foundFromSD) // write only if the parameter is read from the card initially, as in there is sth to write back
             {
                 if (i != 0) 
                 {
@@ -959,7 +971,7 @@ String configHandler::writeDataStructsToSDCard(char filename[])
 
         for (int i = 0; i < singleAxisMapsAmount_; i++) // then single axis maps
         {
-            if (singleAxisMaps_[i]->readFromSD) // write only if the map is read from the card initially, as in there is sth to write back
+            if (singleAxisMaps_[i]->foundFromSD) // write only if the map is read from the card initially, as in there is sth to write back
             {
                 myFile_.println(); // new line
                 myFile_.print("#");
@@ -993,7 +1005,7 @@ String configHandler::writeDataStructsToSDCard(char filename[])
 
         for (int i = 0; i < dualAxisMapsAmount_; i++) // then dual axis maps
         {
-            if (dualAxisMaps_[i]->readFromSD) // write only if the map is read from the card initially, as in there is sth to write back
+            if (dualAxisMaps_[i]->foundFromSD) // write only if the map is read from the card initially, as in there is sth to write back
             {
                 myFile_.println(); // new line
                 myFile_.print("#");
@@ -1056,15 +1068,15 @@ void configHandler::clearConfigReadFlags()
 {
     for(int i = 0; i < dualAxisMapsAmount_; i++)
     {
-       dualAxisMaps_[i]->readFromSD = false;
+       dualAxisMaps_[i]->foundFromSD = false;
     }
     for(int i = 0; i < singleAxisMapsAmount_; i++)
     {
-       singleAxisMaps_[i]->readFromSD = false;
+       singleAxisMaps_[i]->foundFromSD = false;
     }
     for(int i = 0; i < parametersAmount_; i++)
     {
-       parameters_[i]->readFromSD = false;
+       parameters_[i]->foundFromSD = false;
     }
 }
 
@@ -1072,26 +1084,37 @@ bool configHandler::checkConfigStatus()
 {
     for(int i = 0; i < dualAxisMapsAmount_; i++)
     {
-        if (!dualAxisMaps_[i]->readFromSD)
+        if (!dualAxisMaps_[i]->foundFromSD)
         {
             return false;
         } 
     }
     for(int i = 0; i < singleAxisMapsAmount_; i++)
     {
-        if (!singleAxisMaps_[i]->readFromSD)
+        if (!singleAxisMaps_[i]->foundFromSD)
         {
             return false;
         } 
     }
     for(int i = 0; i < parametersAmount_; i++)
     {
-        if (!parameters_[i]->readFromSD)
+        if (!parameters_[i]->foundFromSD)
         {
             return false;
         } 
     }
     return true;
+}
+
+void configHandler::replaceMissingDataWithDefaults()
+{
+    for(int i = 0; i < parametersAmount_; i++)
+    {
+        if (!parameters_[i]->foundFromSD)
+        {
+            parameters_[i]->data = parameters_[i]->defaultData;
+        } 
+    }
 }
 
 struct configHandler::configurationSet* configHandler::givePtrToConfigurationSet()

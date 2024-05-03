@@ -30,7 +30,7 @@ void speedMeasurement::increaseCounter()
 }
 
 // run on every rising edge
-void speedMeasurement::calcPeriodLength()
+void speedMeasurement::updatePeriodLength()
 {    
     if (readDualSignal_)
     {
@@ -44,21 +44,23 @@ void speedMeasurement::calcPeriodLength()
             evenOddCounter_ = 0;
             dualMem2_ = counter_;
         }
-        // use larger of the values, for cases when the speed signal contains two independent period lenghts, and you are interested in the longer one
-        if (dualMem1_ > dualMem2_)
+        // use shorter of the values, for cases when the speed signal contains two independent period lenghts, and you are interested in the shorter one
+        if (dualMem1_ < dualMem2_)
         {
             mem_ = dualMem2_;
+            counter_ = 0;
         }
         else
         {
             mem_ = dualMem1_;
+            counter_ = 0;
         }
     }
     else
     {
         mem_ = counter_;
-    }
-    counter_ = 0;
+        counter_ = 0;
+    }    
 }
 
 // lowpass filter, to be run with 1ms intervals

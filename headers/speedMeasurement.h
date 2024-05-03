@@ -29,7 +29,7 @@ class speedMeasurement
 
 		void setPulsesPerRev(int amount);
 		void increaseCounter();
-		void calcPeriodLength();
+		void updatePeriodLength();
 		int givePeriodLength();
 		int giveCounter() const;
 		int giveRPM();

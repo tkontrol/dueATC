@@ -375,13 +375,9 @@ bool ui::nextPage()
 bool ui::showMainScreen()
 {
   drawMainScreen();
-  if (rightButton_.giveSingleShot())
-  {
-    core_.gearUpRequest();
-  }
   if (leftButton_.giveSingleShot())
   {
-    core_.gearDownRequest();
+    core_.forceGearVariables();
   }
   if (upButton_.givePulse())
   {
@@ -522,18 +518,20 @@ void ui::drawMainScreen()
   screen_.print(*dataPtrs_.engineSpeed);
   
   screen_.setFont(u8g_font_4x6r);
-  screen_.drawStr(52, 44, "TCC");
+  screen_.drawStr(52, 44, "measuredGear:");
 
+  screen_.setCursor(105, 44);
+  screen_.print(*dataPtrs_.measuredGear);
   switch(*dataPtrs_.tccMod)
   {
   case TCCcontrol::TCCMode::open:
-      screen_.drawStr(105, 44, "open");
+     // screen_.drawStr(105, 44, "open");
   break;
   case TCCcontrol::TCCMode::slipping:
-      screen_.drawStr(105, 44, "slipping");
+     // screen_.drawStr(105, 44, "slipping");
   break;
     case TCCcontrol::TCCMode::closed:
-      screen_.drawStr(105, 44, "closed");
+    //  screen_.drawStr(105, 44, "closed");
   break;
   } 
 
@@ -543,14 +541,14 @@ void ui::drawMainScreen()
 
   screen_.drawStr(52, 63, "Transm.ratio:");
   screen_.setCursor(105, 63);
-  if (*dataPtrs_.dType == configHandler::driveType::load)
-  {
+ // if (*dataPtrs_.dType == configHandler::driveType::load)
+  //{
     screen_.print(*dataPtrs_.transmissionRatio);
-  }
-  else
-  {
-    screen_.print("coast");
-  }
+ // }
+  //else
+  //{
+  //  screen_.print("coast");
+  //}
 }
 
 bool ui::showLiveData1()

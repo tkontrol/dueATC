@@ -28,12 +28,13 @@ class configHandler
 
 		struct dualAxisMap
 		{
-			String ID;
-			int minData;
-			int maxData;
-			bool readFromSD;
-			uint8_t rows;
-			uint8_t columns;
+			String ID; // map name
+			int minData; // lower limit for data value
+			int maxData; // upper limit for data value
+			int defaultData; // default data value to return if map not found from SD card
+			bool foundFromSD; // flag if map was found from SD card
+			uint8_t rows; // amount of rows
+			uint8_t columns; // amount of columns
 			int rowTitles[DUAL_AXIS_MAP_MAXIMUM_ROWS];
 			int columnTitles[DUAL_AXIS_MAP_MAXIMUM_COLS];
 			int data[DUAL_AXIS_MAP_MAXIMUM_ROWS][DUAL_AXIS_MAP_MAXIMUM_COLS];
@@ -47,11 +48,12 @@ class configHandler
 
 		struct singleAxisMap
 		{
-			String ID;
-			int minData;
-			int maxData;
-			bool readFromSD;
-			uint8_t columns;
+			String ID; // map name
+			int minData; // lower limit for data value
+			int maxData; // upper limit for data value
+			int defaultData; // default data value to return if map not found from SD card
+			bool foundFromSD; // flag if map was found from SD card
+			uint8_t columns; // amount of columns
 			int columnTitles[SINGLE_AXIS_MAP_MAXIMUM_COLS];
 			int data[SINGLE_AXIS_MAP_MAXIMUM_COLS];
 		};
@@ -64,11 +66,12 @@ class configHandler
 
 		struct parameter
 		{
-			String ID;
-			bool readFromSD;
+			String ID; // map name
+			int minData; // lower limit for data value
+			int maxData; // upper limit for data value
+			int defaultData; // default data value to return if map not found from SD card
+			bool foundFromSD; // flag if map was found from SD card
 			int data;
-			int minData;
-			int maxData;
 		};
 
 		struct parameterContainer
@@ -85,7 +88,6 @@ class configHandler
 		};
 
 		void initMaps();
-		//void printObjectsToSerial();
 		void setObjectIDs();
 		int giveShiftMapValue(shiftType stype, driveType dtype, int oil, uint8_t load);
 		void changeShiftMapValue(dualAxisMap* map, int rowVal, int colVal, int newVal);
@@ -110,8 +112,8 @@ class configHandler
 		String writeDataStructsToSDCard(char filename[]);
 		void clearConfigReadFlags();
 		bool checkConfigStatus();
-		struct configurationSet* givePtrToConfigurationSet();	
-
+		void replaceMissingDataWithDefaults();
+		struct configurationSet* givePtrToConfigurationSet();		
 
 		dualAxisMap* lastMPCmap_;
 		dualAxisMap* lastSPCmap_;

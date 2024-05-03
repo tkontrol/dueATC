@@ -139,8 +139,11 @@ void shiftControl::controlPressureSolenoids()
 
     // following three lines are to compensate oil pump capacity in low engine rews
     int correction = config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_);
-    *MPC_ = *MPC_ + correction;
+    //*MPC_ = *MPC_ + correction;
     *SPC_ = *SPC_ + correction;
+
+    if (*MPC_ > 100){*MPC_ = 100;}
+    if (*SPC_ > 100){*SPC_ = 100;}
 
     REG_PWM_CDTYUPD0 = *MPC_; //pin 34/35, control the MPC solenoid
     REG_PWM_CDTYUPD1 = *SPC_; //pin 36/37, control the SPC solenoid   
@@ -231,35 +234,40 @@ uint8_t shiftControl::checkIfTransmissionRatioMatchesAnyGear()
 // return true if transmission ratio matches given gear
 bool shiftControl::checkIfTransmissionRatioMatchesForGear(uint8_t gear)
 {
-    float gap = 0.05;
+    float gap = 0.12;
     switch(gear)
     {
     case 1:
-        if (*transmissionRatio_ <= 3.59 + gap && *transmissionRatio_ >= 3.59 - gap)
+        //if (*transmissionRatio_ <= 3.59 + gap && *transmissionRatio_ >= 3.59 - gap)
+        if (3.10 < *transmissionRatio_ && *transmissionRatio_ < 4.10)
         {
             return true;
         }
         break;
     case 2:
-        if (*transmissionRatio_ <= 2.19 + gap && *transmissionRatio_ >= 2.19 - gap)
+        //if (*transmissionRatio_ <= 2.19 + gap && *transmissionRatio_ >= 2.19 - gap)
+        if (1.80 < *transmissionRatio_ && *transmissionRatio_ < 3.10)
         {
             return true;
         }
         break;
     case 3:
-        if (*transmissionRatio_ <= 1.41 + gap && *transmissionRatio_ >= 1.41 - gap)
+        //if (*transmissionRatio_ <= 1.41 + gap && *transmissionRatio_ >= 1.41 - gap)
+        if (1.10 < *transmissionRatio_ && *transmissionRatio_ < 1.80)
         {
             return true;
         }
         break;
     case 4:
-        if (*transmissionRatio_ <= 1.00 + gap && *transmissionRatio_ >= 1.00 - gap)
+        //if (*transmissionRatio_ <= 1.00 + gap && *transmissionRatio_ >= 1.00 - gap)
+        if (0.95 < *transmissionRatio_ && *transmissionRatio_ < 1.10)
         {
             return true;
         }
         break;
     case 5:
-        if (*transmissionRatio_ <= 0.83 + gap && *transmissionRatio_ >= 0.83 - gap)
+        //if (*transmissionRatio_ <= 0.83 + gap && *transmissionRatio_ >= 0.83 - gap)
+        if (0.70 < *transmissionRatio_ && *transmissionRatio_ < 0.95)
         {
             return true;
         }

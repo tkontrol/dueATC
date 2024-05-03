@@ -41,12 +41,12 @@ class core
 		binaryMeasurement brakePedal_;
 		binaryMeasurement Pswitch_;
 		binaryMeasurement Rswitch_;
-		//binaryMeasurement gearPlus_;
-		//binaryMeasurement gearMinus_;
 
 		shiftControl shiftControl_;
     	configHandler config_;
 		TCCcontrol TCCcontrol_;
+
+		bool configOK_ = false;
 
 		int wheelCircum_;
 		int driveShaftPulsesPerRev_;
@@ -55,12 +55,11 @@ class core
 		uint8_t currentGear_;
 		uint8_t targetGear_;
 		uint8_t autoModeTargetGear_;
+		uint8_t measuredGear_;
 
 		bool brakePedalSwitchState_;
 		bool parkSwitchState_;
 		bool reverseSwitchState_;
-		//bool gearPlusSwitchState_;
-		//bool gearMinusSwitchState_;
 		int engineSpeed_;
 		int vehicleSpeed_;
 		int primaryVehicleSpeed_;
@@ -143,7 +142,7 @@ class core
 
 		enum loggableVariable {engineSpeed, vehicleSpeed, primAndSecVehSpds, n2Andn3Speed, n3n2Ratio, transmissionRatio, TCSlipAndTCControl, oilTemp};
 		loggableVariable variableToBeLogged_;
-		enum leverPos {P, R, N, D};
+		enum leverPos {P, R, N, D, undef};
 		leverPos lever_;
 		bool dOrRengaged_;
 		enum shiftingMode {MAN, AUT};
@@ -160,6 +159,7 @@ class core
 			uint8_t* currentGear;
 			uint8_t* targetGear;
 			uint8_t* autoModeTargetGear;
+			uint8_t* measuredGear;
 			int* engineSpeed;
 			int* vehicleSpeed;
 			int* primaryVehicleSpeed;
@@ -227,7 +227,7 @@ class core
 		void updateAnalogMeasurements();
 		void updateLeverPosition();
 		void updateGearByN3N2Ratio();
-		//void readShiftSwitches();
+		void forceGearVariables();
 		void doAutoShifts();
 		void updateLog();
 		void modifyLastShiftMaps(int MPCchange, int SPCchange);
