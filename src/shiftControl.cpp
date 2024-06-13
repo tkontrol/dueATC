@@ -11,7 +11,8 @@ shiftControl::~shiftControl()
 }
 
 void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, uint8_t &SPC, configHandler::driveType &driveType, int &oilTemp, uint8_t &load,
- uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, bool &shifting, int &lastShiftDuration, float &transmissionRatio, bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed)
+ uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, bool &shifting, int &lastShiftDuration, float &transmissionRatio, bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed,
+ bool &overridePressureValues, uint8_t &overridedMPCValue, uint8_t &overridedSPCValue)
 {
     config_ = &configHandler;
     MPC_ = &MPC;
@@ -31,6 +32,9 @@ void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, 
     shiftPermission_ = &shiftPermission;
     dOrRengaged_ = &dOrRengaged;
     engineSpeed_ = &engineSpeed;
+    overridePressureValues_ = &overridePressureValues;
+    overridedMPCValue_ = &overridedMPCValue;
+    overridedSPCValue_ = &overridedSPCValue;
     pinMode(SOL_12_45, OUTPUT);
     pinMode(SOL_23, OUTPUT);
     pinMode(SOL_34, OUTPUT);
@@ -129,7 +133,7 @@ void shiftControl::controlPressureSolenoids()
     if (!*shifting_ && *dOrRengaged_)
     {
         *MPC_ = uint8_t(config_->giveRegularMPCMapValue(*oilTemp_, int(*load_))); // outside of shifts = regular drive. during shifts, MPC value will be set in activateSolenoids()
-        *SPC_ = 100; // outside shifts, 100, because inverse control -> 100 = zero pressure
+        *SPC_ = 100; // outside shifts, 100, because inverse control -> 100 = zero current = full pressure
     }
     else if (!*shifting_ && !*dOrRengaged_)
     {
@@ -137,14 +141,19 @@ void shiftControl::controlPressureSolenoids()
         *SPC_ = 100;
     }   
 
-    // following three lines are to compensate oil pump capacity in low engine rews
-    int correction = config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_);
-    //*MPC_ = *MPC_ + correction;
-    *SPC_ = *SPC_ + correction;
-
-    if (*MPC_ > 100){*MPC_ = 100;}
+    // override values if set in UI
+    if (*overridePressureValues_ && *shifting_)
+    {
+        *MPC_ = *overridedMPCValue_;
+        *SPC_ = *overridedSPCValue_;
+    }
+    
     if (*SPC_ > 100){*SPC_ = 100;}
 
+    Serial.print(*MPC_);
+    Serial.print("  ");
+    Serial.println(*SPC_);
+    Serial.print("  ");
     REG_PWM_CDTYUPD0 = *MPC_; //pin 34/35, control the MPC solenoid
     REG_PWM_CDTYUPD1 = *SPC_; //pin 36/37, control the SPC solenoid   
 }
@@ -155,7 +164,7 @@ void shiftControl::activateSolenoids()
     if (currentGearForShift_ == 1 && nextGear_ == 2) // shift from 1 to 2
     {
         *MPC_ = uint8_t(config_->giveShiftMapValue(configHandler::MPC_1to2, *driveType_, *oilTemp_, *load_));
-        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_1to2, *driveType_, *oilTemp_, *load_));
+        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_1to2, *driveType_, *oilTemp_, *load_) + config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_));
         shiftSolenoidTimeForShift_ = config_->giveShiftSolenoidTimeValue(*oilTemp_, *MPC_);       
         digitalWrite(SOL_12_45, HIGH);
         *shifting_ = true;
@@ -163,7 +172,7 @@ void shiftControl::activateSolenoids()
     else if (currentGearForShift_ == 2 && nextGear_ == 3) // etc
     {
         *MPC_ = uint8_t(config_->giveShiftMapValue(configHandler::MPC_2to3, *driveType_, *oilTemp_, *load_));
-        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_2to3, *driveType_, *oilTemp_, *load_));  
+        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_2to3, *driveType_, *oilTemp_, *load_) + config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_));
         shiftSolenoidTimeForShift_ = config_->giveShiftSolenoidTimeValue(*oilTemp_, *MPC_);  
         digitalWrite(SOL_23, HIGH);
         *shifting_ = true;
@@ -171,7 +180,7 @@ void shiftControl::activateSolenoids()
     else if (currentGearForShift_ == 3 && nextGear_ == 4)
     {
         *MPC_ = uint8_t(config_->giveShiftMapValue(configHandler::MPC_3to4, *driveType_, *oilTemp_, *load_));
-        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_3to4, *driveType_, *oilTemp_, *load_));  
+        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_3to4, *driveType_, *oilTemp_, *load_) + config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_)); 
         shiftSolenoidTimeForShift_ = config_->giveShiftSolenoidTimeValue(*oilTemp_, *MPC_); 
         digitalWrite(SOL_34, HIGH);
         *shifting_ = true;
@@ -179,7 +188,7 @@ void shiftControl::activateSolenoids()
     else if (currentGearForShift_ == 4 && nextGear_ == 5)
     {
         *MPC_ = uint8_t(config_->giveShiftMapValue(configHandler::MPC_4to5, *driveType_, *oilTemp_, *load_));
-        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_4to5, *driveType_, *oilTemp_, *load_));  
+        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_4to5, *driveType_, *oilTemp_, *load_) + config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_));
         shiftSolenoidTimeForShift_ = config_->giveShiftSolenoidTimeValue(*oilTemp_, *MPC_); 
         digitalWrite(SOL_12_45, HIGH);
         *shifting_ = true;
@@ -187,7 +196,7 @@ void shiftControl::activateSolenoids()
     else if (currentGearForShift_ == 5 && nextGear_ == 4)
     {
         *MPC_ = uint8_t(config_->giveShiftMapValue(configHandler::MPC_5to4, *driveType_, *oilTemp_, *load_));
-        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_5to4, *driveType_, *oilTemp_, *load_)); 
+        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_5to4, *driveType_, *oilTemp_, *load_) + config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_)); 
         shiftSolenoidTimeForShift_ = config_->giveShiftSolenoidTimeValue(*oilTemp_, *MPC_);  
         digitalWrite(SOL_12_45, HIGH);
         *shifting_ = true;
@@ -195,7 +204,7 @@ void shiftControl::activateSolenoids()
     else if (currentGearForShift_ == 4 && nextGear_ == 3)
     {
         *MPC_ = uint8_t(config_->giveShiftMapValue(configHandler::MPC_4to3, *driveType_, *oilTemp_, *load_));
-        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_4to3, *driveType_, *oilTemp_, *load_)); 
+        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_4to3, *driveType_, *oilTemp_, *load_) + config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_));
         shiftSolenoidTimeForShift_ = config_->giveShiftSolenoidTimeValue(*oilTemp_, *MPC_);  
         digitalWrite(SOL_34, HIGH);
         *shifting_ = true;
@@ -203,7 +212,7 @@ void shiftControl::activateSolenoids()
     else if (currentGearForShift_ == 3 && nextGear_ == 2)
     {
         *MPC_ = uint8_t(config_->giveShiftMapValue(configHandler::MPC_3to2, *driveType_, *oilTemp_, *load_));
-        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_3to2, *driveType_, *oilTemp_, *load_)); 
+        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_3to2, *driveType_, *oilTemp_, *load_) + config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_));
         shiftSolenoidTimeForShift_ = config_->giveShiftSolenoidTimeValue(*oilTemp_, *MPC_);  
         digitalWrite(SOL_23, HIGH);
         *shifting_ = true;
@@ -211,7 +220,7 @@ void shiftControl::activateSolenoids()
     else if (currentGearForShift_ == 2 && nextGear_ == 1)
     {
         *MPC_ = uint8_t(config_->giveShiftMapValue(configHandler::MPC_2to1, *driveType_, *oilTemp_, *load_));
-        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_2to1, *driveType_, *oilTemp_, *load_));  
+        *SPC_ = uint8_t(config_->giveShiftMapValue(configHandler::SPC_2to1, *driveType_, *oilTemp_, *load_) + config_->giveEngSpdOilPressCorrectionValue(*engineSpeed_));  
         shiftSolenoidTimeForShift_ = config_->giveShiftSolenoidTimeValue(*oilTemp_, *MPC_); 
         digitalWrite(SOL_12_45, HIGH);
         *shifting_ = true;

@@ -47,6 +47,9 @@ class core
 		TCCcontrol TCCcontrol_;
 
 		bool configOK_ = false;
+		bool overridePressureValues_ = false;
+		uint8_t overridedMPCValue_;
+		uint8_t overridedSPCValue_;
 
 		int wheelCircum_;
 		int driveShaftPulsesPerRev_;
@@ -167,6 +170,9 @@ class core
 			bool* brakePedalSwitch;
 			bool* parkSwitch;
 			bool* reverseSwitch;
+			uint8_t* overridedSPCValue;
+			uint8_t* overridedMPCValue;
+			bool* overridePressureValues;
 			leverPos* leverPosition;
 			shiftingMode* shiftingMod;
 			TCCcontrol::TCCMode* tccMod;

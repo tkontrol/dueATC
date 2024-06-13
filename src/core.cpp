@@ -1,11 +1,11 @@
 #include "../headers/core.h"
 
 core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicleSpeedPin, int secondaryVehicleSpeedPin, int n2SpeedPin, int n3SpeedPin):
-    engineSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 100, 9999, 5, true)),
-    primaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999, 3)), // 2900 rpm ~ 270 km/h
-    secondaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999, 5)), // 2900 rpm ~ 270 km/h
-    n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 3)),
-    n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 3)),
+    engineSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 100, 9999, 1, true)),
+    primaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999, 1)), // 2900 rpm ~ 270 km/h
+    secondaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999, 1)), // 2900 rpm ~ 270 km/h
+    n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 1)),
+    n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 1)),
     oilTemp_PN_Meas_(analogMeasurement(7, 10)), // 7 = pin A0    
     MAP_Meas_(analogMeasurement(6, 5)), // 6 = pin A1
     TPS_Meas_(analogMeasurement(5, 5)), // 5 = pin A2
@@ -32,7 +32,9 @@ void core::initController()
 
     config_.initMaps();
     parametersPtr_ = config_.givePtrToConfigurationSet()->parameters; // receive pointer to parameters. otherwise than maps container pointer, this is used also by core
-    shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, usePreShiftDelay_, shifting_, lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_, dOrRengaged_, engineSpeed_);
+    shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, usePreShiftDelay_, shifting_,
+    lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_, dOrRengaged_, engineSpeed_,
+    overridePressureValues_, overridedMPCValue_, overridedSPCValue_);
     TCCcontrol_.setOutputLimits(0, 100);
     TCCcontrol_.setMeasurementPointers(engineSpeed_, inputShaftSpeed_);
     TCCcontrol_.setTCCmode(tccMode_); // WHERE TO GET THIS SETTING?
@@ -68,6 +70,9 @@ void core::initController()
     //activateMalfunction(3);
     //activateMalfunction(2);
     //activateMalfunction(7); 
+
+    overridedMPCValue_ = 100;
+    overridedSPCValue_ = 100;
 }
 
 void core::coreloop() // this is called in 1ms intervals, see main.cpp
@@ -243,7 +248,7 @@ void core::updateSpeedMeasurements()
     
     vehicleSpeed_  = (((wheelCircum_ * 10000) / (driveShaftPulsesPerRev_ * usedVehicleSpeedPeriodLength))) / 3.6; // in case used speed measurement is from driveshaft!
 
-    cardanShaftSpeed_ = (60 / driveShaftPulsesPerRev_) * 1000000 / (usedVehicleSpeedPeriodLength) * float(finalDriveRatioX100_ / 100) ; // in case used speed measurement (pri or sec) is from driveshaft
+    cardanShaftSpeed_ = int(float(60 / float(driveShaftPulsesPerRev_)) * float(1000000) / float(usedVehicleSpeedPeriodLength) * float(finalDriveRatioX100_) / 100) ; // in case used speed measurement (pri or sec) is from driveshaft
 
     //cardanShaftSpeed_ = secondaryVehicleSpeedMeas_.giveRPM(); // in case secondary sensor measures directly cardan shaft
 
@@ -252,7 +257,7 @@ void core::updateSpeedMeasurements()
     primaryVehicleSpeed_ = primaryVehicleSpeedMeas_.giveRPM();
     secondaryVehicleSpeed_ = secondaryVehicleSpeedMeas_.giveRPM(); 
 
-    engineSpeed_ = engineSpeedMeas_.giveRPM() *1.35;
+    engineSpeed_ = engineSpeedMeas_.giveRPM() *1.31;
     //engineSpeed_ = engineSpeedMeas_.giveRPM() - 100;
     //if (engineSpeed_ < 0) {engineSpeed_ = 0;}
 
@@ -446,7 +451,7 @@ void core::doAutoShifts()
         {
             return; // config_ returns 0 -> no need to shift atm, exit function
         }
-        else
+        else if (vehicleSpeed_ < 10 || currentGear_ == measuredGear_)
         {
             targetGear_ = autoModeTargetGear_;
         }
@@ -748,8 +753,9 @@ struct core::dataStruct core::giveDataPointers()
     data_.brakePedalSwitch = &brakePedalSwitchState_; 
     data_.parkSwitch = &parkSwitchState_;
     data_.reverseSwitch = &reverseSwitchState_;
-    //data_.gearPlusSwitch = &gearPlusSwitchState_;
-    //data_.gearMinusSwitch = &gearMinusSwitchState_;     
+    data_.overridePressureValues = &overridePressureValues_;
+    data_.overridedMPCValue = &overridedMPCValue_;
+    data_.overridedSPCValue = &overridedSPCValue_;
     data_.leverPosition = &lever_;
     data_.shifting = &shifting_;
     data_.shiftingMod = &shiftingMode_;

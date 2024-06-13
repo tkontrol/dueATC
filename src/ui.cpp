@@ -1654,24 +1654,94 @@ bool ui::increaseLastShiftMPC()
 {
   core_.modifyLastShiftMaps(1, 0);
   showNotification(1000, "Increased MPC map value by 1!");
+  return true;
 }
 
 bool ui::decreaseLastShiftMPC()
 {
   core_.modifyLastShiftMaps(-1, 0);
   showNotification(1000, "Decreased MPC map value by 1!");
+  return true;
 }
 
 bool ui::increaseLastShiftSPC()
 {
   core_.modifyLastShiftMaps(0, 1);
   showNotification(1000, "Increased SPC map value by 1!");
+  return true;
 }
 
 bool ui::decreaseLastShiftSPC()
 {
   core_.modifyLastShiftMaps(0, -1);
   showNotification(1000, "Decreased SPC map value by 1!");
+  return true;
+}
+
+bool ui::showPressureValuesOverrideView()
+{
+  static uint8_t selection = 1;
+  screen_.setFont(u8g2_font_synchronizer_nbp_tf);
+  screen_.drawStr(25, 8, "OVERR.PRESS.VALS");
+  screen_.drawLine(0, 10, 128, 10);
+
+  screen_.setCursor(0, 35);
+  screen_.print("Active:");
+  screen_.setCursor(0, 45);
+  *dataPtrs_.overridePressureValues ? screen_.print("true"): screen_.print("false");
+  if (selection == 1) {screen_.print("*");}
+
+  screen_.setCursor(55, 35);
+  screen_.print("MPC: ");
+  screen_.setCursor(55, 45);
+  screen_.print(*dataPtrs_.overridedMPCValue);
+  if (selection == 2) {screen_.print("*");}
+
+  screen_.setCursor(90, 35);
+  screen_.print("SPC: ");
+  screen_.setCursor(90, 45);
+  screen_.print(*dataPtrs_.overridedSPCValue);
+  if (selection == 3) {screen_.print("*");}
+  
+  if (selection > 1 && leftButton_.giveSingleShot())
+  {
+    selection--;
+  }
+  else if (selection < 3 && rightButton_.giveSingleShot())
+  {
+    selection++;
+  }
+
+  if (selection == 1)
+  {
+    if (upButton_.giveSingleShot() || downButton_.giveSingleShot())
+    {
+      *dataPtrs_.overridePressureValues ? *dataPtrs_.overridePressureValues = false: *dataPtrs_.overridePressureValues = true; // toggle variable
+    }
+  }
+  else if (selection == 2)
+  {
+    if (upButton_.givePulse() && *dataPtrs_.overridedMPCValue < 100)
+    {
+      *dataPtrs_.overridedMPCValue = *dataPtrs_.overridedMPCValue + 1;
+    }
+    else if (downButton_.givePulse() && *dataPtrs_.overridedMPCValue > 1)
+    {
+      *dataPtrs_.overridedMPCValue = *dataPtrs_.overridedMPCValue - 1;
+    }
+  }
+  else if (selection == 3)
+  {
+    if (upButton_.givePulse() && *dataPtrs_.overridedSPCValue < 100)
+    {
+      *dataPtrs_.overridedSPCValue = *dataPtrs_.overridedSPCValue + 1;
+    }
+    else if (downButton_.givePulse() && *dataPtrs_.overridedSPCValue > 1)
+    {
+      *dataPtrs_.overridedSPCValue = *dataPtrs_.overridedSPCValue - 1;
+    }
+  }
+  return cancelButton_.giveSingleShot();
 }
 
 bool ui::goToDualAxisMapEditorMenu()

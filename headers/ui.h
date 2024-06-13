@@ -16,7 +16,6 @@
 #define gearUpPin 50
 #define gearDownPin 52
 
-
 class ui
 {
 	private:
@@ -81,7 +80,7 @@ class ui
  
 		struct menuCollection
 		{
-			uint8_t size; // how many menuObjs menu contains
+			uint8_t size; // how many menuObjs this menuCollection contains
 			uint8_t selection; // which menuObj is selected
 			struct menuObj* menuObj; // pointer to struct of menuObjs
 			menuCollection* hostMenu; // pointer to host menu (where to return when exiting menu)
@@ -94,9 +93,10 @@ class ui
     	uint8_t fallBackSelection_;
 
 		// Main menu
-		menuObj mainM_[6] = {
+		menuObj mainM_[7] = {
 			{"Main Screen", &ui::showMainScreen},
 			{"Adjust last shift", &ui::goToAdjustLastShiftMenu},
+			{"Override MPC&SPC", &ui::showPressureValuesOverrideView},
 			{"Settings", &ui::goToSettingsMenu},
 			{"Live Data", &ui::goToLiveDataMenu},
 			{"TCC PI ctrl tune", &ui::showTCCTuneView},
@@ -255,6 +255,7 @@ class ui
 		bool decreaseLastShiftMPC();
 		bool increaseLastShiftSPC();
 		bool decreaseLastShiftSPC();
+		bool showPressureValuesOverrideView();
 		bool goToDualAxisMapEditorMenu();
 		bool goToSingleAxisMapEditorMenu();
 
