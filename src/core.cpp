@@ -2,8 +2,8 @@
 
 core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicleSpeedPin, int secondaryVehicleSpeedPin, int n2SpeedPin, int n3SpeedPin):
     engineSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 100, 9999, 1, true)),
-    primaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999, 1)), // 2900 rpm ~ 270 km/h
-    secondaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 50, 2999, 1)), // 2900 rpm ~ 270 km/h
+    primaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 5, 2999, 1)), // 2900 rpm ~ 270 km/h
+    secondaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 5, 2999, 1)), // 2900 rpm ~ 270 km/h
     n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 1)),
     n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 1)),
     oilTemp_PN_Meas_(analogMeasurement(7, 10)), // 7 = pin A0    
@@ -32,8 +32,8 @@ void core::initController()
 
     config_.initMaps();
     parametersPtr_ = config_.givePtrToConfigurationSet()->parameters; // receive pointer to parameters. otherwise than maps container pointer, this is used also by core
-    shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, usePreShiftDelay_, shifting_,
-    lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_, dOrRengaged_, engineSpeed_,
+    shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, usePreShiftDelay_, preShiftDelay_, shifting_,
+    lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_, dOrRengaged_, engineSpeed_, vehicleSpeed_,
     overridePressureValues_, overridedMPCValue_, overridedSPCValue_);
     TCCcontrol_.setOutputLimits(0, 100);
     TCCcontrol_.setMeasurementPointers(engineSpeed_, inputShaftSpeed_);
@@ -82,6 +82,7 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     updateAnalogMeasurements();
     updateLeverPosition();
     updateGearByN3N2Ratio();
+    updateCurrentGearByMeasuredGear();
     doAutoShifts();
     makeUpShiftCommand();
     makeDownShiftCommand();
@@ -107,7 +108,7 @@ void core::startupProcedure()
 
     configOK_ = config_.checkConfigStatus();
 
-    usePreShiftDelay_ = false; //// //// REMOVE AFTER TESTING!!!!!!!!!!!!!!!!!!!!!!
+    //usePreShiftDelay_ = false; //// //// REMOVE AFTER TESTING!!!!!!!!!!!!!!!!!!!!!!
 
     while (startupCounter_ < 2000)
     {
@@ -168,6 +169,14 @@ void core::updateParameter(configHandler::parameter* p)
     else if (p->ID == "Final_drive_ratio_x100")
     {
         finalDriveRatioX100_ = p->data;
+    }
+    else if (p->ID == "accept_measuredGear_as_currentGear_after_delay")
+    {
+        acceptMeasuredGearAsCurrentGearAfterDelay_ = p->data;
+    }
+    else if (p->ID == "delay_to_accept_measuredGear_as_currentGear")
+    {
+        delayToAcceptMeasuredGearAsCurrentGear_ = p->data;
     }
 }
 
@@ -347,6 +356,7 @@ void core::updateAnalogMeasurements()
     }
     TPSVoltage_ = TPS_Meas_.giveVoltage() * 2.5; //factor 2.5 because voltage-divider on PCB //ADC->ADC_CDR[6] / 1023.0 * 3300; 
     TPS_ = config_.giveTPSValue(TPSVoltage_);
+    calculateTPSdelayed();
     MAPVoltage_ = MAP_Meas_.giveVoltage() * 2.5; //factor 2.5 because voltage-divider on PCB //ADC->ADC_CDR[5] / 1023.0 * 3300; 
     MAP_ = config_.giveMAPValue(MAPVoltage_);
     load_ = int(0.5 * TPS_ + 0.5 * MAP_);
@@ -355,6 +365,37 @@ void core::updateAnalogMeasurements()
     {
         load_ = 100;
     }
+}
+
+void core::calculateTPSdelayed()
+{
+    int delaySpeed = 100; // unit = ms / % -> how many ms it needs to increase TPSdelayed +1%
+    static int counter;
+    
+    if (TPS_ < TPSdelayed_)
+    {
+        counter++;
+    }
+
+    if (counter == delaySpeed && TPSdelayed_ > 0)
+    {
+        TPSdelayed_--;
+        counter = 0;
+    }
+
+    if (TPS_ >= TPSdelayed_)
+    {
+        TPSdelayed_ = TPS_;
+        counter = 0;
+    }
+    //Serial.print(counter);
+    //Serial.print(" ");
+    //Serial.print(TPS_);
+    //Serial.print(" ");
+    //Serial.print(TPSprev);
+    //Serial.print(" ");
+    //Serial.println(TPSdelayed_);
+    //TPSprev = TPS_;
 }
 
 void core::updateLeverPosition()
@@ -408,31 +449,60 @@ void core::updateLeverPosition()
 
 void core::updateGearByN3N2Ratio()
 {
-    if (lever_ == P && engineSpeed_ > 500 && !shifting_)
+    if (lever_ == P && engineSpeed_ > 600 && !shifting_)
     {
-        if (n3n2Ratio_ <= 0.50)
+        if (n3n2Ratio_ <= 0.50 && currentGear_ != 1)
         {
             shiftControl_.forceGearVariables(1);
         }
-        else if (n3n2Ratio_ >= 0.50)
+        else if (n3n2Ratio_ >= 0.50 && currentGear_ != 2)
         {
             shiftControl_.forceGearVariables(2);
         }
     }
 }
-/*
-void core::readShiftSwitches()
+
+void core::updateCurrentGearByMeasuredGear()
 {
-    gearPlusSwitchState_ = gearPlus_.giveState();
-    gearMinusSwitchState_ = gearMinus_.giveState();
+    static uint8_t currentGearCandidate;
+    static uint8_t currentGearCandidatePrev;
+    static int currentGearCounter;
+    static bool currentGearSet;
 
-    if (targetGear_ == currentGear_)
+    if (acceptMeasuredGearAsCurrentGearAfterDelay_)
     {
-        if (gearPlusSwitchState_) {gearUpRequest();}
-        if (gearMinusSwitchState_) {gearDownRequest();}
-    }
+        currentGearCandidate = measuredGear_;
 
-} */
+        if (currentGearCandidate == currentGearCandidatePrev && currentGearCounter < delayToAcceptMeasuredGearAsCurrentGear_) //last condition is to prevent overflow
+        {
+            currentGearCounter++;
+        }
+        else //reset variables
+        {
+            currentGearCounter = 0;
+            currentGearSet = false;
+        }
+        if (!currentGearSet && currentGear_ != measuredGear_ && //this is to make sure that the currentGear_ = measuredGear is done only once
+                currentGearCounter >= delayToAcceptMeasuredGearAsCurrentGear_ &&
+                currentGearCandidate != 0 &&
+                engineSpeed_ >= 600 &&
+                vehicleSpeed_ >= 10 &&
+                lever_ == D)
+        {
+            shiftControl_.forceGearVariables(currentGearCandidate);
+            currentGearSet = true; //this is to make sure that the currentGear_ = measuredGear is done only once
+            //Serial.println("currentGear asetettu");
+        }
+        currentGearCandidatePrev = currentGearCandidate;
+    }
+    else
+    {   
+        currentGearCandidate = 0;
+        currentGearCandidatePrev = 0;
+        currentGearCounter = 0;
+        currentGearSet = false;
+    }
+}
 
 void core::forceGearVariables()
 {
@@ -444,18 +514,28 @@ void core::forceGearVariables()
 
 void core::doAutoShifts()
 {  
-    if (shiftingMode_ == AUT && !shifting_)
+    if (shiftingMode_ == AUT && !shifting_ && lever_ == D)
     {
-        autoModeTargetGear_ = config_.giveAutoModeTargetGear(vehicleSpeed_, currentGear_, load_); // VAIHDA TÄHÄN KAASUN ASENTO TAI KUORMA
+        autoModeTargetGear_ = config_.giveAutoModeTargetGear(vehicleSpeed_, currentGear_, TPSdelayed_);
         if (autoModeTargetGear_ == 0)
         {
             return; // config_ returns 0 -> no need to shift atm, exit function
         }
-        else if (vehicleSpeed_ < 10 || currentGear_ == measuredGear_)
+        else if (vehicleSpeed_ <= 10 || currentGear_ == measuredGear_)
         {
             targetGear_ = autoModeTargetGear_;
         }
     }
+
+    if (vehicleSpeed_ > 0 && vehicleSpeed_ <= 10 && shiftingMode_ == AUT)
+    {
+        usePreShiftDelay_ = true;
+    }
+    else
+    {
+        usePreShiftDelay_ = false;
+    }
+
 }
 
 void core::toggleAutoMan()
@@ -463,12 +543,12 @@ void core::toggleAutoMan()
     if (shiftingMode_ == MAN && configOK_)
     {
         shiftingMode_ = AUT;
-        usePreShiftDelay_ = true;
+        //usePreShiftDelay_ = true;
     }
     else if (shiftingMode_ == AUT)
     {
         shiftingMode_ = MAN;
-        usePreShiftDelay_ = false;
+        //usePreShiftDelay_ = false;
     }
 }
 
@@ -477,12 +557,12 @@ void core::toggleRatioDetection()
     if (useGearRatioDetection_)
     {
         useGearRatioDetection_ = false;
-        Serial.println("ratio detection off");
+        //Serial.println("ratio detection off");
     }
     else
     {
         useGearRatioDetection_ = true;
-        Serial.println("ratio detection on");
+        //Serial.println("ratio detection on");
     }
 }
 
@@ -533,6 +613,11 @@ void core::updateLog()
                 var1 = oilTemp_;
             break;
 
+            case TPSes:
+                var1 = TPS_;
+                var2 = TPSdelayed_;
+            break;
+
             default:
                 var1 = 0;
                 var2 = 0;
@@ -581,6 +666,7 @@ void core::gearUpRequest() // for manual upshift, call this
     if (shiftingMode_ == MAN && targetGear_ < 5 && !shifting_ && shiftPermission_)
     {
         targetGear_ ++;
+        Serial.println("ylös");
     }
 }
 
@@ -589,11 +675,12 @@ void core::gearDownRequest() // for manual downshift, call this
     if (shiftingMode_ == MAN && targetGear_ > 1 && !shifting_ && shiftPermission_)
     {
         targetGear_ --;
+        Serial.println("alas");
     }
 }
 
 void core::makeUpShiftCommand()
-{
+{/*
     static int delayCounter = 0;
     static bool counting;
 
@@ -617,11 +704,11 @@ void core::makeUpShiftCommand()
         counting = false;
         delayCounter = 0;
         gearUpComm_ = true;
-    }
+    }*/
 }
 
 void core::makeDownShiftCommand()
-{
+{ /*
     static int delayCounter = 0;
     static bool counting;
 
@@ -645,7 +732,7 @@ void core::makeDownShiftCommand()
         counting = false;
         delayCounter = 0;
         gearDownComm_ = true;
-    }
+    } */
 }
 
 void core::setLoggableVariable(core::loggableVariable var)
@@ -785,39 +872,7 @@ struct core::dataStruct core::giveDataPointers()
 
 void core::printData()
 { 
-    /*
-    Serial.print("engineSpeed ");
-    Serial.print(engineSpeed_);
-    Serial.print("     "); 
-    Serial.print("vehicleSpeed: ");
-    Serial.print(vehicleSpeed_);
-    Serial.print("     ");
-    Serial.print("n2Speed: ");
-    Serial.print(n2Speed_);
-    Serial.print("     ");
-    Serial.print("n3n2Ratio: ");
-    Serial.print(n3n2Ratio_);
- 
-    Serial.print("up ");
-    Serial.print(upButton_.giveState());
-    Serial.print("     "); 
-    Serial.print("down ");
-    Serial.print(downButton_.giveState());
-    Serial.print("     "); 
-    Serial.print("left ");
-    Serial.print(leftButton_.giveState());
-    Serial.print("     "); 
-    Serial.print("right ");
-    Serial.print(rightButton_.giveState());
-    Serial.print("     "); 
-    Serial.print("ok ");
-    Serial.print(okButton_.giveState());
-    Serial.print("     "); 
-    Serial.print("cancel ");
-    Serial.print(cancelButton_.giveState());
-    Serial.print("     "); 
 
-    Serial.print("\n");    */
 }
 
 void core::activateMalfunction(uint8_t code)

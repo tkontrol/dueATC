@@ -135,7 +135,7 @@ class ui
 		menuCollection liveDataMenu_ = {sizeof(liveDatamM_)/sizeof(liveDatamM_[0]), 0, &*liveDatamM_, &mainMenu_};
 
 		// Data plotter menu
-		menuObj dataPlottermM_[8] = {
+		menuObj dataPlottermM_[9] = {
 			{"Engine speed", &ui::plotEngineSpeed},
 			{"Vehicle speed", &ui::plotVehicleSpeed},
 			{"Prim&Sec veh.spd", &ui::plotPrimAndSecSpds},
@@ -143,7 +143,8 @@ class ui
 			{"n3/n2 ratio", &ui::plotn2n3Ratio},
 			{"Transmission ratio", &ui::plotTransmissionRatio},
 			{"TC slip & control", &ui::plotTCSlipAndCtrl},
-			{"Oil temp", &ui::plotOilTemp}
+			{"Oil temp", &ui::plotOilTemp},
+			{"TPS & TPSdelayed", &ui::plotTPSes}
 		}; 
 		menuCollection dataPlotterMenu_ = {sizeof(dataPlottermM_)/sizeof(dataPlottermM_[0]), 0, &*dataPlottermM_, &liveDataMenu_};
 
@@ -246,6 +247,7 @@ class ui
 		bool plotTransmissionRatio();
 		bool plotTCSlipAndCtrl();
 		bool plotOilTemp();
+		bool plotTPSes();
 		void plotDataForSingleYAxis(bool leftAxisFloat = false, bool displayData2 = false);
 		//void plotDataForDualYAxis(bool leftAxisFloat = false);
 		void plotDataForDualYAxis(bool leftAxisFloat = false, bool useSmallView = false);

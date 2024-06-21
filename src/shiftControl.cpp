@@ -10,9 +10,10 @@ shiftControl::~shiftControl()
 
 }
 
-void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, uint8_t &SPC, configHandler::driveType &driveType, int &oilTemp, uint8_t &load,
- uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, bool &shifting, int &lastShiftDuration, float &transmissionRatio, bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed,
- bool &overridePressureValues, uint8_t &overridedMPCValue, uint8_t &overridedSPCValue)
+void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, uint8_t &SPC, configHandler::driveType &driveType,
+ int &oilTemp, uint8_t &load, uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, int &preShiftDelay, bool &shifting,
+ int &lastShiftDuration, float &transmissionRatio, bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed,
+ int &vehicleSpeed, bool &overridePressureValues, uint8_t &overridedMPCValue, uint8_t &overridedSPCValue)
 {
     config_ = &configHandler;
     MPC_ = &MPC;
@@ -25,6 +26,7 @@ void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, 
 	targetGear_ = &targetGear;
     targetGearDelayed_ = *targetGear_; // get initial status
     usePreShiftDelay_ = &usePreShiftDelay;
+    preShiftDelay_ = &preShiftDelay;
     shifting_ = &shifting;
     lastShiftDuration_ = &lastShiftDuration;
     transmissionRatio_ = &transmissionRatio;
@@ -32,6 +34,7 @@ void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, 
     shiftPermission_ = &shiftPermission;
     dOrRengaged_ = &dOrRengaged;
     engineSpeed_ = &engineSpeed;
+    vehicleSpeed_ = &vehicleSpeed;
     overridePressureValues_ = &overridePressureValues;
     overridedMPCValue_ = &overridedMPCValue;
     overridedSPCValue_ = &overridedSPCValue;
@@ -65,7 +68,7 @@ void shiftControl::runShifts()
     if (*shifting_) // what is executed during shift
     {        
         if (useGearRatioDetectionForShift_)
-        {
+        { /*
             if (checkIfTransmissionRatioMatchesForGear(nextGear_) && shiftTimer_ > 100) // if ratio is reached in plausible time,
             { // end shift immediately
                 digitalWrite(SOL_12_45, LOW);
@@ -104,9 +107,9 @@ void shiftControl::runShifts()
                 *currentGear_= currentGearForShift_ = *targetGear_ = nextGear_;
                 *shifting_ = false;
                 Serial.println("activate manual mode!");
-            }
+            } */
         }
-        else if (shiftTimer_ == shiftSolenoidTimeForShift_) //
+        else if (shiftTimer_ >= shiftSolenoidTimeForShift_) //
         {
             digitalWrite(SOL_12_45, LOW);
             digitalWrite(SOL_23, LOW);
@@ -124,18 +127,21 @@ void shiftControl::runShifts()
 
 void shiftControl::forceGearVariables(uint8_t gear)
 {
-    *currentGear_ = currentGearForShift_ = *targetGear_ = targetGearDelayed_ = nextGear_ = gear;
+    if (!*shifting_)
+    {
+        *currentGear_ = currentGearForShift_ = *targetGear_ = targetGearDelayed_ = nextGear_ = gear;
+    }
 }
 
 // control MPC & SPC solenoids
 void shiftControl::controlPressureSolenoids()
 {
-    if (!*shifting_ && *dOrRengaged_)
+    if (!*shifting_ && *dOrRengaged_) // outside of shifts, R or D engaged = regular drive.
     {
-        *MPC_ = uint8_t(config_->giveRegularMPCMapValue(*oilTemp_, int(*load_))); // outside of shifts = regular drive. during shifts, MPC value will be set in activateSolenoids()
+        *MPC_ = uint8_t(config_->giveRegularMPCMapValue(*oilTemp_, int(*load_))); // during shifts, MPC value will be set in activateSolenoids(), except when vehicleSpeed_ = 0
         *SPC_ = 100; // outside shifts, 100, because inverse control -> 100 = zero current = full pressure
     }
-    else if (!*shifting_ && !*dOrRengaged_)
+    else if (!*shifting_ && !*dOrRengaged_) // outside of shifts, P or N engaged = "garage shifts"
     {
         *MPC_ = 30;
         *SPC_ = 100;
@@ -147,13 +153,21 @@ void shiftControl::controlPressureSolenoids()
         *MPC_ = *overridedMPCValue_;
         *SPC_ = *overridedSPCValue_;
     }
+
+    // if vehicle is stationary, it is ok to use full pressures during shifting
+    if (*vehicleSpeed_ == 0 && *shifting_)
+    {
+        *MPC_ = 100;
+        *SPC_ = 100;
+        shiftSolenoidTimeForShift_ = 600;
+    }
     
     if (*SPC_ > 100){*SPC_ = 100;}
-
-    Serial.print(*MPC_);
-    Serial.print("  ");
-    Serial.println(*SPC_);
-    Serial.print("  ");
+    if (*MPC_ > 100){*MPC_ = 100;}
+    //Serial.print(*MPC_);
+    //Serial.print("  ");
+    //Serial.println(*SPC_);
+    //Serial.print("  ");
     REG_PWM_CDTYUPD0 = *MPC_; //pin 34/35, control the MPC solenoid
     REG_PWM_CDTYUPD1 = *SPC_; //pin 36/37, control the SPC solenoid   
 }
@@ -303,7 +317,7 @@ void shiftControl::checkIfPreshiftDelayIsNeeded()
         {
             delayCounter++;
         }
-        if (delayCounter == 500) 
+        if (delayCounter == *preShiftDelay_)
         {
             counting = false;
             delayCounter = 0;

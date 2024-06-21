@@ -24,6 +24,7 @@ class shiftControl
 		uint8_t nextGear_;
 		bool* dOrRengaged_;
 		bool* usePreShiftDelay_;
+		int* preShiftDelay_;
 		bool* shifting_;
 		int shiftTimer_;
 		int* lastShiftDuration_;
@@ -33,6 +34,7 @@ class shiftControl
 		bool useGearRatioDetectionForShift_;		
 		bool* shiftPermission_;
 		int* engineSpeed_;
+		int* vehicleSpeed_;
 		bool* overridePressureValues_;
 		uint8_t* overridedMPCValue_;
 		uint8_t* overridedSPCValue_;
@@ -48,8 +50,8 @@ class shiftControl
 		~shiftControl();
 
 		void initShiftControl(configHandler &configHandler, uint8_t &MPC, uint8_t &SPC, configHandler::driveType &driveType, int &oilTemp, uint8_t &load,
- 		uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, bool &shifting, int &lastShiftDuration, float &transmissionRatio,
-		bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed, bool &overridePressureValues, uint8_t &overridedMPCValue, uint8_t &overridedSPCValue);
+ 		uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, int &preShiftDelay, bool &shifting, int &lastShiftDuration, float &transmissionRatio,
+		bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed, int &vehicleSpeed, bool &overridePressureValues, uint8_t &overridedMPCValue, uint8_t &overridedSPCValue);
 		void runShifts();
 		void forceGearVariables(uint8_t gear);
 		uint8_t checkIfTransmissionRatioMatchesAnyGear();

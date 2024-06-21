@@ -193,6 +193,8 @@ class configHandler
 
 		singleAxisMap* singleAxisMaps_[6] = {&shiftTimeTargetMap_, &engSpdLoadFactorMap_, &engSpdOilPressureCorrectionMap_, &TPSLinearizationMap_, &MAPLinearizationMap_, &oilTempMap_};
 
+		parameter accept_measuredGear_as_currentGear_after_delay_;
+		parameter delay_to_accept_measuredGear_as_currentGear_;
 		parameter tccControlPfactor_;
 		parameter tccControlIfactor_;	
 		parameter startWith1StGear_;
@@ -204,9 +206,10 @@ class configHandler
 		parameter driveShaftPulsesPerRev_;
 	
 
-		const uint8_t parametersAmount_ = 9; // remember to update after adding params
+		const uint8_t parametersAmount_ = 11; // remember to update after adding params
 
-		parameter* parameters_[9] = {&tccControlPfactor_, &tccControlIfactor_, &startWith1StGear_ ,&minimumVehicleSpeedForGearRatioDetection_, &wheelCircum_, 
+		parameter* parameters_[11] = {&accept_measuredGear_as_currentGear_after_delay_, &delay_to_accept_measuredGear_as_currentGear_,
+		&tccControlPfactor_, &tccControlIfactor_, &startWith1StGear_ ,&minimumVehicleSpeedForGearRatioDetection_, &wheelCircum_, 
 		&brightness_, &engineSpeedPulsesPerRev_, &driveShaftPulsesPerRev_, &finalDriveRatiox100_};
 
 

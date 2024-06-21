@@ -73,6 +73,8 @@ void configHandler::setObjectIDs() // sets IDs for every object as they exist in
     driveShaftPulsesPerRev_ = {"driveShaft_Pulses_Per_Revolution", 1, 100, 1};
     tccControlPfactor_ = {"TCC_PI_control_P_factor", 1, 1000, 0};
     tccControlIfactor_ = {"TCC_PI_control_I_factor", 1, 1000, 0};
+    accept_measuredGear_as_currentGear_after_delay_ = {"accept_measuredGear_as_currentGear_after_delay", 0, 1, 0};
+    delay_to_accept_measuredGear_as_currentGear_ = {"delay_to_accept_measuredGear_as_currentGear", 1, 10000, 5000};
 }
 /*
 void configHandler::printObjectsToSerial()
@@ -730,7 +732,7 @@ int configHandler::linearlyInterpolate(float x1, float x2, float xVal, float y1,
 }
 
 void configHandler::printDualAxisMapToSerial(dualAxisMap *map)
-{
+{ /*
     Serial.println(map->ID);
     Serial.println(map->rows);
     Serial.println(map->columns);
@@ -759,7 +761,7 @@ void configHandler::printDualAxisMapToSerial(dualAxisMap *map)
             Serial.print(" ");
         }
          Serial.print("\n");
-    } 
+    } */
 }
 
 // reads all

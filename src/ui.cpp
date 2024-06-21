@@ -418,11 +418,6 @@ void ui::drawMainScreen()
       {
         blinkCounter = 0;
       }
-
-      //screen_.setCursor(-4, 50);
-      //screen_.setFont(u8g2_font_inr42_mf);
-      //screen_.print(*dataPtrs_.currentGear); 
-      //Serial.println("hep!");
   }
   else
   {
@@ -927,6 +922,30 @@ bool ui::plotOilTemp()
     return true;
   }
   return false;
+}
+
+bool ui::plotTPSes()
+{
+  core_.setLoggingStatus(true);
+  core_.setLoggableVariable(core::TPSes);
+  plotDataForDualYAxis();
+
+  screen_.setCursor(28, 8);
+  screen_.print("TPS: ");
+  screen_.print(int(log_->y1Data[0]));
+  screen_.print(" %");
+  screen_.setCursor(85, 8);
+  screen_.print("TPSd: ");
+  screen_.print(log_->y2Data[0]);
+  screen_.print(" %");
+
+  if (cancelButton_.giveSingleShot())
+  {
+    core_.setLoggingStatus(false);
+    return true;
+  }
+  return false;
+
 }
 
 void ui::plotDataForSingleYAxis(bool leftAxisFloat, bool displayData2)

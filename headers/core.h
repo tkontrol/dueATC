@@ -76,6 +76,7 @@ class core
 		int oilTemp_PN_sens_resistance_;
 		int TPS_;
 		int TPSVoltage_;
+		int TPSdelayed_;
 		int MAP_;
 		int MAPVoltage_;
 		uint8_t load_;
@@ -106,8 +107,11 @@ class core
 
 		bool shiftPermission_;
 		bool usePreShiftDelay_ = false;
+		int preShiftDelay_ = 1500;
 		bool startWith1StGear_;
 		int lastShiftDuration_;	
+		bool acceptMeasuredGearAsCurrentGearAfterDelay_;
+		int delayToAcceptMeasuredGearAsCurrentGear_;
 
 		bool notificationTimerOn_;
 		int notificationTimerCounter_;
@@ -143,7 +147,7 @@ class core
 		core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicleSpeedPin, int secondaryVehicleSpeedPin, int n2SpeedPin, int n3SpeedPin);
 		~core();
 
-		enum loggableVariable {engineSpeed, vehicleSpeed, primAndSecVehSpds, n2Andn3Speed, n3n2Ratio, transmissionRatio, TCSlipAndTCControl, oilTemp};
+		enum loggableVariable {engineSpeed, vehicleSpeed, primAndSecVehSpds, n2Andn3Speed, n3n2Ratio, transmissionRatio, TCSlipAndTCControl, oilTemp, TPSes};
 		loggableVariable variableToBeLogged_;
 		enum leverPos {P, R, N, D, undef};
 		leverPos lever_;
@@ -231,8 +235,10 @@ class core
 		void updateSpeedMeasurements();		
 		void detectDriveType();
 		void updateAnalogMeasurements();
+		void calculateTPSdelayed();
 		void updateLeverPosition();
 		void updateGearByN3N2Ratio();
+		void updateCurrentGearByMeasuredGear();
 		void forceGearVariables();
 		void doAutoShifts();
 		void updateLog();
