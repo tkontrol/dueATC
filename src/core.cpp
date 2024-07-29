@@ -82,6 +82,8 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     updateAnalogMeasurements();
     updateLeverPosition();
     updateGearByN3N2Ratio();
+    shiftTo1stInP();
+    checkIfCurrentGearEqualsMeasuredGear();
     updateCurrentGearByMeasuredGear();
     doAutoShifts();
     makeUpShiftCommand();
@@ -107,8 +109,6 @@ void core::startupProcedure()
     shifting_ = false;
 
     configOK_ = config_.checkConfigStatus();
-
-    //usePreShiftDelay_ = false; //// //// REMOVE AFTER TESTING!!!!!!!!!!!!!!!!!!!!!!
 
     while (startupCounter_ < 2000)
     {
@@ -266,7 +266,7 @@ void core::updateSpeedMeasurements()
     primaryVehicleSpeed_ = primaryVehicleSpeedMeas_.giveRPM();
     secondaryVehicleSpeed_ = secondaryVehicleSpeedMeas_.giveRPM(); 
 
-    engineSpeed_ = engineSpeedMeas_.giveRPM() *1.31;
+    engineSpeed_ = engineSpeedMeas_.giveRPM() *1.28;
     //engineSpeed_ = engineSpeedMeas_.giveRPM() - 100;
     //if (engineSpeed_ < 0) {engineSpeed_ = 0;}
 
@@ -294,22 +294,20 @@ void core::updateSpeedMeasurements()
     {
         transmissionRatio_.ratio = float(inputShaftSpeed_) / float(cardanShaftSpeed_); 
 
-        if (transmissionRatio_.ratio > transmratioPrev + 0.01)
+        if (transmissionRatio_.ratio > transmratioPrev + 0.001)
         {
-            transmissionRatio_.ratio = transmissionRatio_.ratio + 0.01;
+            transmissionRatio_.ratio = transmissionRatio_.ratio + 0.001;
         }
-        else if (transmissionRatio_.ratio < transmratioPrev - 0.01)
+        else if (transmissionRatio_.ratio < transmratioPrev - 0.001)
         {
-            transmissionRatio_.ratio = transmissionRatio_.ratio - 0.01;
+            transmissionRatio_.ratio = transmissionRatio_.ratio - 0.001;
         }
 
         transmratioPrev = transmissionRatio_.ratio;
         ratioLowPassCounter = 0;
     } 
+    //transmratioPrev = transmissionRatio_.ratio;
     ratioLowPassCounter++;  
-    
-
-    //transmissionRatio_.ratio = float(inputShaftSpeed_) / float(cardanShaftSpeed_); 
 
     transmissionRatio_.isValid = true;
 }
@@ -369,7 +367,7 @@ void core::updateAnalogMeasurements()
 
 void core::calculateTPSdelayed()
 {
-    int delaySpeed = 100; // unit = ms / % -> how many ms it needs to increase TPSdelayed +1%
+    int delaySpeed = 80; // unit = ms / % -> how many ms it needs to increase TPSdelayed +1%
     static int counter;
     
     if (TPS_ < TPSdelayed_)
@@ -449,7 +447,7 @@ void core::updateLeverPosition()
 
 void core::updateGearByN3N2Ratio()
 {
-    if (lever_ == P && engineSpeed_ > 600 && !shifting_)
+    if (lever_ == P && engineSpeed_ > 800 && !shifting_)
     {
         if (n3n2Ratio_ <= 0.50 && currentGear_ != 1)
         {
@@ -459,6 +457,43 @@ void core::updateGearByN3N2Ratio()
         {
             shiftControl_.forceGearVariables(2);
         }
+    }
+}
+
+void core::checkIfCurrentGearEqualsMeasuredGear()
+{
+    static int counter;
+    int delay = 300;
+    if (currentGear_ == measuredGear_ && counter < delay)
+    {
+        counter++;
+    }
+    else
+    {
+        counter = 0;
+    }
+    if (counter == delay) // set delay here
+    {
+        currentGearMatchesMeasuredGear_ = true;
+        return;
+    }
+    currentGearMatchesMeasuredGear_ = false;
+}
+
+void core::shiftTo1stInP()
+{
+    static int counter;
+    if (startWith1StGear_ && lever_ == P && engineSpeed_ > 800 && currentGear_ == 2 && vehicleSpeed_ == 0 && !shifting_)
+    {
+        counter++;
+    }
+    else
+    {
+        counter = 0;
+    }
+    if (counter == 1000)
+    {
+        targetGear_ = 1;
     }
 }
 
@@ -485,13 +520,12 @@ void core::updateCurrentGearByMeasuredGear()
         if (!currentGearSet && currentGear_ != measuredGear_ && //this is to make sure that the currentGear_ = measuredGear is done only once
                 currentGearCounter >= delayToAcceptMeasuredGearAsCurrentGear_ &&
                 currentGearCandidate != 0 &&
-                engineSpeed_ >= 600 &&
+                engineSpeed_ >= 800 &&
                 vehicleSpeed_ >= 10 &&
                 lever_ == D)
         {
             shiftControl_.forceGearVariables(currentGearCandidate);
             currentGearSet = true; //this is to make sure that the currentGear_ = measuredGear is done only once
-            //Serial.println("currentGear asetettu");
         }
         currentGearCandidatePrev = currentGearCandidate;
     }
@@ -521,13 +555,14 @@ void core::doAutoShifts()
         {
             return; // config_ returns 0 -> no need to shift atm, exit function
         }
-        else if (vehicleSpeed_ <= 10 || currentGear_ == measuredGear_)
+        else if ((vehicleSpeed_ <= 7 || currentGearMatchesMeasuredGear_))
+        //else if ((vehicleSpeed_ <= 10 || currentGear_ == measuredGear_))
         {
             targetGear_ = autoModeTargetGear_;
         }
     }
 
-    if (vehicleSpeed_ > 0 && vehicleSpeed_ <= 10 && shiftingMode_ == AUT)
+    if (vehicleSpeed_ > 0 && vehicleSpeed_ <= 7 && shiftingMode_ == AUT)
     {
         usePreShiftDelay_ = true;
     }

@@ -112,6 +112,7 @@ class core
 		int lastShiftDuration_;	
 		bool acceptMeasuredGearAsCurrentGearAfterDelay_;
 		int delayToAcceptMeasuredGearAsCurrentGear_;
+		bool currentGearMatchesMeasuredGear_;
 
 		bool notificationTimerOn_;
 		int notificationTimerCounter_;
@@ -238,6 +239,8 @@ class core
 		void calculateTPSdelayed();
 		void updateLeverPosition();
 		void updateGearByN3N2Ratio();
+		void checkIfCurrentGearEqualsMeasuredGear();
+		void shiftTo1stInP();
 		void updateCurrentGearByMeasuredGear();
 		void forceGearVariables();
 		void doAutoShifts();
