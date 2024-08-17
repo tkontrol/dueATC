@@ -75,42 +75,8 @@ void configHandler::setObjectIDs() // sets IDs for every object as they exist in
     tccControlIfactor_ = {"TCC_PI_control_I_factor", 1, 1000, 0};
     accept_measuredGear_as_currentGear_after_delay_ = {"accept_measuredGear_as_currentGear_after_delay", 0, 1, 0};
     delay_to_accept_measuredGear_as_currentGear_ = {"delay_to_accept_measuredGear_as_currentGear", 1, 10000, 5000};
+    delay_to_currentGear_eq_measuredGear_to_acpt_autoShift_ = {"delay_to_currentGear_eq_measuredGear_to_acpt_autoShift", 1, 5000, 300};
 }
-/*
-void configHandler::printObjectsToSerial()
-{
-    Serial.print("Parametrit: \n");
-    for (int i = 0; i < parametersAmount_; i++)
-    {
-        Serial.print(parameters_[i]->ID);
-        Serial.print(": ");
-        Serial.print(parameters_[i]->data);
-        Serial.print(", luettu: ");
-        Serial.println(parameters_[i]->foundFromSD);
-    }
-
-    Serial.print("\nSinkkukartat: \n");
-    for (int i = 0; i < singleAxisMapsAmount_; i++)
-    {
-        Serial.print(singleAxisMaps_[i]->ID);
-        Serial.print(", sarakkeita: ");
-        Serial.print(singleAxisMaps_[i]->columns);
-        Serial.print(", luettu: ");
-        Serial.println(singleAxisMaps_[i]->foundFromSD);
-    }
- 
-    Serial.print("\nKaksiakselikartat:\n ");
-    for (int i = 0; i < dualAxisMapsAmount_; i++)
-    {
-        Serial.print(dualAxisMaps_[i]->ID);
-        Serial.print(", rivejä: ");
-        Serial.print(dualAxisMaps_[i]->rows);
-        Serial.print(", sarakkeita: ");
-        Serial.print(dualAxisMaps_[i]->columns);
-        Serial.print(", luettu: ");
-        Serial.println(dualAxisMaps_[i]->foundFromSD);
-    } 
-} */
 
 int configHandler::giveShiftMapValue(shiftType stype, driveType dtype, int oil, uint8_t load)
 {

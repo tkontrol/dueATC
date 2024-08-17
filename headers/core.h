@@ -113,6 +113,7 @@ class core
 		bool acceptMeasuredGearAsCurrentGearAfterDelay_;
 		int delayToAcceptMeasuredGearAsCurrentGear_;
 		bool currentGearMatchesMeasuredGear_;
+		int delayToCurrentGearEqualsMeasuredGearToAcceptAutoShift_;
 
 		bool notificationTimerOn_;
 		int notificationTimerCounter_;

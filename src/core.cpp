@@ -178,6 +178,10 @@ void core::updateParameter(configHandler::parameter* p)
     {
         delayToAcceptMeasuredGearAsCurrentGear_ = p->data;
     }
+    else if (p->ID = "delay_to_currentGear_eq_measuredGear_to_acpt_autoShift")
+    {
+        delayToCurrentGearEqualsMeasuredGearToAcceptAutoShift_ = p->data;
+    }
 }
 
 String core::readConfFile()
@@ -463,8 +467,7 @@ void core::updateGearByN3N2Ratio()
 void core::checkIfCurrentGearEqualsMeasuredGear()
 {
     static int counter;
-    int delay = 300;
-    if (currentGear_ == measuredGear_ && counter < delay)
+    if (currentGear_ == measuredGear_ && counter < delayToCurrentGearEqualsMeasuredGearToAcceptAutoShift_)
     {
         counter++;
     }
@@ -472,7 +475,7 @@ void core::checkIfCurrentGearEqualsMeasuredGear()
     {
         counter = 0;
     }
-    if (counter == delay) // set delay here
+    if (counter == delayToCurrentGearEqualsMeasuredGearToAcceptAutoShift_) // set delay here
     {
         currentGearMatchesMeasuredGear_ = true;
         return;
@@ -556,7 +559,6 @@ void core::doAutoShifts()
             return; // config_ returns 0 -> no need to shift atm, exit function
         }
         else if ((vehicleSpeed_ <= 7 || currentGearMatchesMeasuredGear_))
-        //else if ((vehicleSpeed_ <= 10 || currentGear_ == measuredGear_))
         {
             targetGear_ = autoModeTargetGear_;
         }
@@ -701,7 +703,6 @@ void core::gearUpRequest() // for manual upshift, call this
     if (shiftingMode_ == MAN && targetGear_ < 5 && !shifting_ && shiftPermission_)
     {
         targetGear_ ++;
-        Serial.println("ylös");
     }
 }
 
@@ -710,7 +711,6 @@ void core::gearDownRequest() // for manual downshift, call this
     if (shiftingMode_ == MAN && targetGear_ > 1 && !shifting_ && shiftPermission_)
     {
         targetGear_ --;
-        Serial.println("alas");
     }
 }
 
