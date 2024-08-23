@@ -64,18 +64,18 @@ void configHandler::setObjectIDs() // sets IDs for every object as they exist in
     TPSLinearizationMap_ = {"TPS_linearization_map", 0, 5000, 0};
     oilTempMap_ = {"ATF_temp_sensor_linearization", 0, 3000, 0};
 
-    startWith1StGear_ = {"Start_with_1St_gear", 0, 1, 0};
-    minimumVehicleSpeedForGearRatioDetection_ = {"Min_vehicle_spd_for_gear_ratio_detection", 0, 100, 100};
-    wheelCircum_ = {"Wheel_circum", 1000, 3000, 2000};
-    finalDriveRatiox100_ = {"Final_drive_ratio_x100", 100, 600};
-    brightness_ = {"Screen_brightness", 0, 100, 100};
-    engineSpeedPulsesPerRev_ = {"engineSpeed_Pulses_Per_Revolution", 1, 100, 1};
-    driveShaftPulsesPerRev_ = {"driveShaft_Pulses_Per_Revolution", 1, 100, 1};
-    tccControlPfactor_ = {"TCC_PI_control_P_factor", 1, 1000, 0};
-    tccControlIfactor_ = {"TCC_PI_control_I_factor", 1, 1000, 0};
-    accept_measuredGear_as_currentGear_after_delay_ = {"accept_measuredGear_as_currentGear_after_delay", 0, 1, 0};
-    delay_to_accept_measuredGear_as_currentGear_ = {"delay_to_accept_measuredGear_as_currentGear", 1, 10000, 5000};
-    delay_to_currentGear_eq_measuredGear_to_acpt_autoShift_ = {"delay_to_currentGear_eq_measuredGear_to_acpt_autoShift", 1, 5000, 300};
+    startWith1StGear_ = {"Start_with_1St_gear","bool", 0, 1, 0};
+    minimumVehicleSpeedForGearRatioDetection_ = {"Min_vehicle_spd_for_gear_ratio_detection","km/h", 0, 100, 100};
+    wheelCircum_ = {"Wheel_circum","mm", 1000, 3000, 2000};
+    finalDriveRatiox100_ = {"Final_drive_ratio_x100", "int/100", 100, 600};
+    brightness_ = {"Screen_brightness", "%", 0, 100, 100};
+    engineSpeedPulsesPerRev_ = {"engineSpeed_Pulses_Per_Revolution","int", 1, 100, 1};
+    driveShaftPulsesPerRev_ = {"driveShaft_Pulses_Per_Revolution","int", 1, 100, 1};
+    tccControlPfactor_ = {"TCC_PI_control_P_factor","int", 1, 1000, 0};
+    tccControlIfactor_ = {"TCC_PI_control_I_factor","int", 1, 1000, 0};
+    accept_measuredGear_as_currentGear_after_delay_ = {"accept_measuredGear_as_currentGear_after_delay","bool", 0, 1, 0};
+    delay_to_accept_measuredGear_as_currentGear_ = {"delay_to_accept_measuredGear_as_currentGear","ms", 1, 10000, 5000};
+    delay_to_currentGear_eq_measuredGear_to_acpt_autoShift_ = {"delay_to_currentGear_eq_measuredGear_to_acpt_autoShift","ms", 1, 5000, 300};
 }
 
 int configHandler::giveShiftMapValue(shiftType stype, driveType dtype, int oil, uint8_t load)

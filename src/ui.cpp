@@ -2050,6 +2050,9 @@ bool ui::showParamEditor()
     screen_.setFont(u8g2_font_profont11_tr);
     screen_.setCursor(10, 55);
     screen_.print(parametersPtr_->parameters[i].data); // print parameter value
+    screen_.print(" ");
+    screen_.setFont(u8g_font_5x8);
+    screen_.print(parametersPtr_->parameters[i].unit);
 
     if (!parametersPtr_->parameters[i].foundFromSD)
     {
@@ -2059,14 +2062,14 @@ bool ui::showParamEditor()
     }
 
     screen_.setFont(u8g_font_5x8);
-    screen_.setCursor(45,55);
+    screen_.setCursor(80,55);
     if (parametersPtr_->parameters[i].data == parametersPtr_->parameters[i].minData)
     {
-      screen_.print("Min val. reached");
+      screen_.print("Min val.");
     }
     else if (parametersPtr_->parameters[i].data == parametersPtr_->parameters[i].maxData)
     {
-      screen_.print("Max val. reached");
+      screen_.print("Max val.");
     }
 
     // if value has changed, show option to save

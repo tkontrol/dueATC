@@ -66,7 +66,8 @@ class configHandler
 
 		struct parameter
 		{
-			String ID; // map name
+			String ID; // parameter name
+			String unit;
 			int minData; // lower limit for data value
 			int maxData; // upper limit for data value
 			int defaultData; // default data value to return if map not found from SD card
