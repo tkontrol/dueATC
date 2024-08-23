@@ -2048,10 +2048,26 @@ bool ui::showParamEditor()
 
     screen_.setFont(u8g2_font_profont11_tr);
     screen_.setCursor(10, 55);
-    screen_.print(parametersPtr_->parameters[i].data); // print parameter value
-    screen_.print(" ");
+
+    if (parametersPtr_->parameters[i].unit == "bool") // if boolean parameter, replace 1/0 with true/false
+    {
+        if (parametersPtr_->parameters[i].data == 0)
+        {
+          screen_.print("false");
+        }
+        if (parametersPtr_->parameters[i].data == 1)
+        {
+          screen_.print("true");
+        }
+    }
+    else
+    {
+      screen_.print(parametersPtr_->parameters[i].data); // print parameter value, if not boolean
+    }
+    screen_.print(" <");
     screen_.setFont(u8g_font_5x8);
-    screen_.print(parametersPtr_->parameters[i].unit);
+    screen_.print(parametersPtr_->parameters[i].unit); //print unit
+    screen_.print(">");
 
     if (!parametersPtr_->parameters[i].foundFromSD)
     {
