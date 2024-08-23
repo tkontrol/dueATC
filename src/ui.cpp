@@ -123,13 +123,20 @@ void ui::initUI()
   dualAxisMapsPtr_ = core_.givePtrToConfigurationSet()->dualAxisMaps;
   singleAxisMapsPtr_ = core_.givePtrToConfigurationSet()->singleAxisMaps;
   screen_.begin();
-  screen_.setBrightness(100);
-  analogWrite(12, 240); // VO input to screen, CONTRAST
   currentMenu_ = &mainMenu_;
   menuFuncExecuting_ = true; // start at MainScreen, because it is the first in MainMenu (which is at index 0 = default at startup)
 
-  showNotification(1000, core_.readConfFile());
+  showNotification(1000, core_.readConfFile()); // here the data from the SD card is read to RAM
 
+  for (int i = 0; i < parametersPtr_->size; i++)
+  {
+    if (parametersPtr_->parameters[i].ID == "Screen_brightness")
+    {
+      screen_.setBrightness(parametersPtr_->parameters[i].data);
+      break;
+    }
+  }
+  analogWrite(12, 240); // VO input to screen, CONTRAST
   core_.startupProcedure();
 }
 
@@ -2043,6 +2050,13 @@ bool ui::showParamEditor()
     screen_.setFont(u8g2_font_profont11_tr);
     screen_.setCursor(10, 55);
     screen_.print(parametersPtr_->parameters[i].data); // print parameter value
+
+    if (!parametersPtr_->parameters[i].foundFromSD)
+    {
+      screen_.setFont(u8g_font_5x8);
+      screen_.setCursor(0, 20);
+      screen_.print("Not on SD");
+    }
 
     screen_.setFont(u8g_font_5x8);
     screen_.setCursor(45,55);

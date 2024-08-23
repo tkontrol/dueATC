@@ -200,18 +200,18 @@ class configHandler
 		parameter tccControlIfactor_;	
 		parameter startWith1StGear_;
 		parameter minimumVehicleSpeedForGearRatioDetection_;
-		parameter wheelCircum_;
-		parameter finalDriveRatiox100_;
+		parameter wheelCircum_;		
 		parameter brightness_;
 		parameter engineSpeedPulsesPerRev_;
-		parameter driveShaftPulsesPerRev_;	
+		parameter driveShaftPulsesPerRev_;
+		parameter finalDriveRatiox100_;
 
 		const uint8_t parametersAmount_ = 12; // remember to update after adding params
 
-		parameter* parameters_[12] = {&delay_to_currentGear_eq_measuredGear_to_acpt_autoShift_, &accept_measuredGear_as_currentGear_after_delay_, &delay_to_accept_measuredGear_as_currentGear_,
+		parameter* parameters_[12] = {&delay_to_currentGear_eq_measuredGear_to_acpt_autoShift_,
+		&accept_measuredGear_as_currentGear_after_delay_, &delay_to_accept_measuredGear_as_currentGear_,
 		&tccControlPfactor_, &tccControlIfactor_, &startWith1StGear_ ,&minimumVehicleSpeedForGearRatioDetection_, &wheelCircum_, 
 		&brightness_, &engineSpeedPulsesPerRev_, &driveShaftPulsesPerRev_, &finalDriveRatiox100_};
-
 
 		// containers
 		dualAxisMapContainer dualAxisMapContainer_ = {dualAxisMapsAmount_, *dualAxisMaps_};

@@ -178,7 +178,7 @@ void core::updateParameter(configHandler::parameter* p)
     {
         delayToAcceptMeasuredGearAsCurrentGear_ = p->data;
     }
-    else if (p->ID = "delay_to_currentGear_eq_measuredGear_to_acpt_autoShift")
+    else if (p->ID == "delay_to_currentGear_eq_measuredGear_to_acpt_autoShift")
     {
         delayToCurrentGearEqualsMeasuredGearToAcceptAutoShift_ = p->data;
     }
