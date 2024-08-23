@@ -1459,13 +1459,13 @@ void ui::editDualAxisMap(configHandler::dualAxisMap* map, bool tracing, variable
   screen_.drawLine(0, 10, 128, 10);
 
   // switch editing mode
-  if (!editingMode_ && okButton_.givePulse())
+  if (!editingMode_ && okButton_.givePulse()) // enter edit mode
   {
     editingMode_ = true;
   }
   if (editingMode_)
   {
-    if (cancelButton_.giveSingleShot())
+    if (cancelButton_.giveSingleShot()) // exit edit mode
     {
         editingMode_ = false;
     }    
@@ -1641,7 +1641,7 @@ int ui::getClosestCell(int values[], uint8_t size, int val)
         {
             if (val <= values[closest])
             {
-                if (val <  (values[closest-1] + ((values[closest] - values[closest-1]) / 2))) // if smaller than halfway of two row titles, then use previous title
+                if (val < (values[closest-1] + ((values[closest] - values[closest-1]) / 2))) // if smaller than halfway of two row titles, then use previous title
                 {
                     closest--;
                 }
@@ -1654,11 +1654,10 @@ int ui::getClosestCell(int values[], uint8_t size, int val)
 
 bool ui::exitMapEditor()
 {
-  if (cancelButton_.giveSingleShot())
+  if (!editingMode_ && cancelButton_.giveSingleShot())
   {
     editorRow_ = 0;
     editorColumn_ = 0;
-    editingMode_ = false;
     return true;
   }
   return false; 
