@@ -575,16 +575,22 @@ void core::doAutoShifts()
 
 }
 
-void core::toggleAutoMan()
+bool core::toggleAutoMan()
 {
     if (shiftingMode_ == MAN && configOK_)
     {
         shiftingMode_ = AUT;
+        return true;
         //usePreShiftDelay_ = true;
+    }
+    else if (shiftingMode_ == MAN && !configOK_)
+    {
+        return false;
     }
     else if (shiftingMode_ == AUT)
     {
         shiftingMode_ = MAN;
+        return true;
         //usePreShiftDelay_ = false;
     }
 }

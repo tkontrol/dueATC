@@ -126,7 +126,7 @@ void ui::initUI()
   currentMenu_ = &mainMenu_;
   menuFuncExecuting_ = true; // start at MainScreen, because it is the first in MainMenu (which is at index 0 = default at startup)
 
-  showNotification(1000, core_.readConfFile()); // here the data from the SD card is read to RAM
+  showNotification(1500, core_.readConfFile()); // here the data from the SD card is read to RAM
 
   for (int i = 0; i < parametersPtr_->size; i++)
   {
@@ -388,12 +388,15 @@ bool ui::showMainScreen()
   }
   if (upButton_.givePulse())
   {
-    core_.toggleAutoMan();
+    if (!core_.toggleAutoMan())
+    {
+      showNotification(3000, "No AUT mode due to some missing conf on SD!");
+    }
   }
   if (downButton_.givePulse())
   {
-    core_.toggleRatioDetection();
-    showNotification(1000, "Toggled gear ratio detection");
+    //core_.toggleRatioDetection();
+    //showNotification(1000, "Toggled gear ratio detection");
   }
 
   return cancelButton_.giveSingleShot();

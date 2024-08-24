@@ -265,7 +265,7 @@ class core
 
 		void makeUpShiftCommand();
 		void makeDownShiftCommand();
-		void toggleAutoMan();
+		bool toggleAutoMan();
 		void toggleRatioDetection();
 		bool giveMalfunctionStatus();
 		void clearFaultCodes();
