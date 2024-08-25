@@ -149,8 +149,9 @@ class ui
 		menuCollection dataPlotterMenu_ = {sizeof(dataPlottermM_)/sizeof(dataPlottermM_[0]), 0, &*dataPlottermM_, &liveDataMenu_};
 
 		// Map editor menu
-		menuObj mapEditorM_[4] = {
-			{"AutoMode gear", &ui::editAutoModeWantedGearMap},
+		menuObj mapEditorM_[5] = {
+			{"AutoMode gear, cold oil", &ui::editAutoModeWantedGearMapCold},
+			{"AutoMode gear, warm oil", &ui::editAutoModeWantedGearMapWarm},
 			{"MPC maps", &ui::goToMPCMapMenu},
 			{"SPC maps", &ui::goToSPCMapMenu},
 			{"Shift sol ctrl time", &ui::editShiftSolenoidTimeMap}
@@ -267,7 +268,8 @@ class ui
 		bool goToMPCMapMenu();
 		bool goToSPCMapMenu();
 		bool editMPCNormalDriveMap();
-		bool editAutoModeWantedGearMap();
+		bool editAutoModeWantedGearMapCold();
+		bool editAutoModeWantedGearMapWarm();
 		bool editShiftSolenoidTimeMap();
 
 		bool editMPC1to2loadMap();

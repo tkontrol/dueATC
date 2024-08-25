@@ -512,8 +512,22 @@ void ui::drawMainScreen()
   screen_.drawStr(52, 6, "Speed");
   screen_.setCursor(105, 6);
   screen_.print(*dataPtrs_.vehicleSpeed);  
-  screen_.drawStr(52, 16, "Oil");
+  screen_.setCursor(52, 16);
+  screen_.print("Oil");
+
+
+  //screen_.drawStr(52, 16, "Oil <");
+  screen_.setFont(u8g_font_4x6r);
+  if (*dataPtrs_.oilTempStatus == configHandler::oilTemp::cold)
+  {
+    screen_.print("<cold>");
+  }
+  else
+  {
+    screen_.print("<warm>");
+  }
   screen_.setCursor(105, 16);
+  screen_.setFont(u8g2_font_synchronizer_nbp_tf);
   screen_.print(*dataPtrs_.oilTemp);
   screen_.drawStr(52, 26, "Load");
   screen_.setCursor(105, 26);
@@ -1185,11 +1199,19 @@ bool ui::editMPCNormalDriveMap()
   return exitMapEditor();
 }
 
-bool ui::editAutoModeWantedGearMap()
+bool ui::editAutoModeWantedGearMapCold()
 {
   screen_.setFont(u8g2_font_synchronizer_nbp_tf);
-  screen_.drawStr(22, 8, "Automode gear");
-  editDualAxisMap(givePtrToDualAxisMap("Automode_wanted_gear_map"));
+  screen_.drawStr(22, 8, "Automode, cold");
+  editDualAxisMap(givePtrToDualAxisMap("Automode_wanted_gear_map_cold"));
+  return exitMapEditor();
+}
+
+bool ui::editAutoModeWantedGearMapWarm()
+{
+  screen_.setFont(u8g2_font_synchronizer_nbp_tf);
+  screen_.drawStr(22, 8, "Automode, warm");
+  editDualAxisMap(givePtrToDualAxisMap("Automode_wanted_gear_map_warm"));
   return exitMapEditor();
 }
 

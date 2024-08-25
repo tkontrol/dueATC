@@ -26,6 +26,8 @@ class configHandler
 
 		enum driveType {load, coast};
 
+		enum oilTemp{cold, warm};
+
 		struct dualAxisMap
 		{
 			String ID; // map name
@@ -93,7 +95,7 @@ class configHandler
 		int giveShiftMapValue(shiftType stype, driveType dtype, int oil, uint8_t load);
 		void changeShiftMapValue(dualAxisMap* map, int rowVal, int colVal, int newVal);
 		void modifyLastShiftMaps(int MPCchange, int SPCchange);
-		uint8_t giveAutoModeTargetGear(int vehicleSpeed, uint8_t currentGear, int rowVal);
+		uint8_t giveAutoModeTargetGear(int vehicleSpeed, uint8_t currentGear, int rowVal, oilTemp temp);
 		int giveRegularMPCMapValue(int rowVal, int colVal);
 		int giveOilTempValue(int resistance);
 		int giveTPSValue(int voltage);
@@ -133,7 +135,8 @@ class configHandler
 		const int chipSelectPin_ = 46;
 
 		// Maps
-		dualAxisMap Automode_gearMap_;
+		dualAxisMap Automode_gearMap_cold_;
+		dualAxisMap Automode_gearMap_warm_;
 		dualAxisMap Shift_solenoid_time_map_;
 
 		dualAxisMap MPC_regularDrive_;
@@ -172,10 +175,10 @@ class configHandler
 		dualAxisMap SPC_3to2_coast_;
 		dualAxisMap SPC_2to1_coast_;
 
-		const uint8_t dualAxisMapsAmount_ = 35; // remember to update after adding maps
+		const uint8_t dualAxisMapsAmount_ = 36; // remember to update after adding maps
 
-		dualAxisMap* dualAxisMaps_[35] = {
-		 &Automode_gearMap_, &Shift_solenoid_time_map_, &MPC_regularDrive_,
+		dualAxisMap* dualAxisMaps_[36] = {
+		 &Automode_gearMap_cold_, &Automode_gearMap_warm_, &Shift_solenoid_time_map_, &MPC_regularDrive_,
 		 &MPC_1to2_load_, &MPC_2to3_load_, &MPC_3to4_load_, &MPC_4to5_load_, &MPC_5to4_load_, &MPC_4to3_load_, &MPC_3to2_load_, &MPC_2to1_load_,
 		 &MPC_1to2_coast_, &MPC_2to3_coast_, &MPC_3to4_coast_, &MPC_4to5_coast_, &MPC_5to4_coast_, &MPC_4to3_coast_, &MPC_3to2_coast_, &MPC_2to1_coast_,
 		 &SPC_1to2_load_, &SPC_2to3_load_, &SPC_3to4_load_, &SPC_4to5_load_, &SPC_5to4_load_, &SPC_4to3_load_, &SPC_3to2_load_, &SPC_2to1_load_,
@@ -194,6 +197,7 @@ class configHandler
 
 		singleAxisMap* singleAxisMaps_[6] = {&shiftTimeTargetMap_, &engSpdLoadFactorMap_, &engSpdOilPressureCorrectionMap_, &TPSLinearizationMap_, &MAPLinearizationMap_, &oilTempMap_};
 		
+		parameter threshold_for_warm_oil_;
 		parameter delay_to_currentGear_eq_measuredGear_to_acpt_autoShift_;
 		parameter accept_measuredGear_as_currentGear_after_delay_;
 		parameter delay_to_accept_measuredGear_as_currentGear_;
@@ -207,9 +211,9 @@ class configHandler
 		parameter driveShaftPulsesPerRev_;
 		parameter finalDriveRatiox100_;
 
-		const uint8_t parametersAmount_ = 12; // remember to update after adding params
+		const uint8_t parametersAmount_ = 13; // remember to update after adding params
 
-		parameter* parameters_[12] = {&delay_to_currentGear_eq_measuredGear_to_acpt_autoShift_,
+		parameter* parameters_[13] = {&threshold_for_warm_oil_, &delay_to_currentGear_eq_measuredGear_to_acpt_autoShift_,
 		&accept_measuredGear_as_currentGear_after_delay_, &delay_to_accept_measuredGear_as_currentGear_,
 		&tccControlPfactor_, &tccControlIfactor_, &startWith1StGear_ ,&minimumVehicleSpeedForGearRatioDetection_, &wheelCircum_, 
 		&brightness_, &engineSpeedPulsesPerRev_, &driveShaftPulsesPerRev_, &finalDriveRatiox100_};

@@ -17,7 +17,8 @@ core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicl
     targetGear_(2),
     brakePedal_(brakePedalSwitchPin),
     Pswitch_(PswitchPin),
-    Rswitch_(RswitchPin)
+    Rswitch_(RswitchPin),
+    oilTempStatus_(configHandler::oilTemp::cold)
 {}
 
 core::~core()
@@ -80,6 +81,7 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     updateSpeedMeasurements(); //first one in loop, use these values during the loop
     detectDriveType();
     updateAnalogMeasurements();
+    updateOilTempStatus();
     updateLeverPosition();
     updateGearByN3N2Ratio();
     shiftTo1stInP();
@@ -181,6 +183,10 @@ void core::updateParameter(configHandler::parameter* p)
     else if (p->ID == "delay_to_currentGear_eq_measuredGear_to_acpt_autoShift")
     {
         delayToCurrentGearEqualsMeasuredGearToAcceptAutoShift_ = p->data;
+    }
+    else if (p->ID == "threshold_for_warm_oil")
+    {
+        thresholdForWarmOil_ = p->data;
     }
 }
 
@@ -369,6 +375,18 @@ void core::updateAnalogMeasurements()
     }
 }
 
+void core::updateOilTempStatus()
+{
+    if (oilTempStatus_ == configHandler::oilTemp::cold && oilTemp_ >= thresholdForWarmOil_)
+    {
+        oilTempStatus_ = configHandler::oilTemp::warm;
+    }
+    if (oilTempStatus_ == configHandler::oilTemp::warm && oilTemp_ <= (thresholdForWarmOil_ - 5))
+    {
+        oilTempStatus_ = configHandler::oilTemp::cold;
+    }
+}
+
 void core::calculateTPSdelayed()
 {
     int delaySpeed = 80; // unit = ms / % -> how many ms it needs to increase TPSdelayed +1%
@@ -553,7 +571,7 @@ void core::doAutoShifts()
 {  
     if (shiftingMode_ == AUT && !shifting_ && lever_ == D)
     {
-        autoModeTargetGear_ = config_.giveAutoModeTargetGear(vehicleSpeed_, currentGear_, TPSdelayed_);
+        autoModeTargetGear_ = config_.giveAutoModeTargetGear(vehicleSpeed_, currentGear_, TPSdelayed_, oilTempStatus_);
         if (autoModeTargetGear_ == 0)
         {
             return; // config_ returns 0 -> no need to shift atm, exit function
@@ -572,7 +590,6 @@ void core::doAutoShifts()
     {
         usePreShiftDelay_ = false;
     }
-
 }
 
 bool core::toggleAutoMan()
@@ -889,6 +906,7 @@ struct core::dataStruct core::giveDataPointers()
     data_.shiftingMod = &shiftingMode_;
     data_.tccMod = &tccMode_;
     data_.dType = &driveType_;
+    data_.oilTempStatus = &oilTempStatus_;
     data_.oilTemp = &oilTemp_;
     data_.oilTemp_PN_sens_res = &oilTemp_PN_sens_resistance_;
     data_.MAP = &MAP_;

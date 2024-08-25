@@ -18,7 +18,8 @@ void configHandler::initMaps()
 
 void configHandler::setObjectIDs() // sets IDs for every object as they exist in config file. also set min, max and default values
 {
-    Automode_gearMap_= {"Automode_wanted_gear_map", 0, 200};
+    Automode_gearMap_cold_ = {"Automode_wanted_gear_map_cold", 0, 200};
+    Automode_gearMap_warm_ = {"Automode_wanted_gear_map_warm", 0, 200};
     Shift_solenoid_time_map_ = {"Shift_solenoid_time_map", 200, 2500, 1000};
     MPC_regularDrive_ = {"MPC_normalDrive", 0, 100, 100};
 
@@ -76,6 +77,7 @@ void configHandler::setObjectIDs() // sets IDs for every object as they exist in
     accept_measuredGear_as_currentGear_after_delay_ = {"accept_measuredGear_as_currentGear_after_delay","bool", 0, 1, 0};
     delay_to_accept_measuredGear_as_currentGear_ = {"delay_to_accept_measuredGear_as_currentGear","ms", 1, 10000, 5000};
     delay_to_currentGear_eq_measuredGear_to_acpt_autoShift_ = {"delay_to_currentGear_eq_measuredGear_to_acpt_autoShift","ms", 1, 5000, 300};
+    threshold_for_warm_oil_ = {"threshold_for_warm_oil", "degC", 0, 100, 50};
 }
 
 int configHandler::giveShiftMapValue(shiftType stype, driveType dtype, int oil, uint8_t load)
@@ -89,7 +91,7 @@ int configHandler::giveShiftMapValue(shiftType stype, driveType dtype, int oil, 
     {        
         lastMPCmap_ = map;
         lastMPCval_ = readDualAxisMap(map, oil, load);
-        lastShiftMPCType_ = stype; /// VAIN TESTAUKSEEN
+        lastShiftMPCType_ = stype; /// ONLY FOR TESTING
         return lastMPCval_;
     }
     else
@@ -185,9 +187,19 @@ void configHandler::modifyLastShiftMaps(int MPCchange, int SPCchange)
     }   
 }
 
-uint8_t configHandler::giveAutoModeTargetGear(int vehicleSpeed, uint8_t currentGear, int rowVal)
+uint8_t configHandler::giveAutoModeTargetGear(int vehicleSpeed, uint8_t currentGear, int rowVal, oilTemp temp)
 {
-    dualAxisMap *map = &Automode_gearMap_;
+    dualAxisMap *map;
+    
+    if (temp == cold)
+    {
+        map = &Automode_gearMap_cold_;
+    }
+    else
+    {
+        map = &Automode_gearMap_warm_;
+    }
+
     int i = 0;
     if (rowVal <= map->rowTitles[0]) // smaller or as small as the smallest in row
     { 

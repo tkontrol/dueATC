@@ -114,6 +114,7 @@ class core
 		int delayToAcceptMeasuredGearAsCurrentGear_;
 		bool currentGearMatchesMeasuredGear_;
 		int delayToCurrentGearEqualsMeasuredGearToAcceptAutoShift_;
+		uint8_t thresholdForWarmOil_;
 
 		bool notificationTimerOn_;
 		int notificationTimerCounter_;
@@ -183,6 +184,7 @@ class core
 			shiftingMode* shiftingMod;
 			TCCcontrol::TCCMode* tccMod;
 			configHandler::driveType* dType;
+			configHandler::oilTemp *oilTempStatus;
 			int* n2Speed;
 			int* n3Speed;
 			int *tcSlip;
@@ -218,7 +220,7 @@ class core
 
 		struct logStruct log_;
 
-		
+		configHandler::oilTemp oilTempStatus_;
 		void initController();
 		void coreloop();
 		void startupProcedure();
@@ -237,6 +239,7 @@ class core
 		void updateSpeedMeasurements();		
 		void detectDriveType();
 		void updateAnalogMeasurements();
+		void updateOilTempStatus();
 		void calculateTPSdelayed();
 		void updateLeverPosition();
 		void updateGearByN3N2Ratio();
