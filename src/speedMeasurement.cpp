@@ -6,8 +6,8 @@ speedMeasurement::speedMeasurement(int interruptInterval, int minRPM, int maxRPM
     maxRPM_(maxRPM),
     readDualSignal_ (readDualSignal)
 {
-    lowerFactorForLowPass_ = float((1000 - maxAllowedPeriodLengthChangeBetweenMeasurements) / 1000);
-    upperFactorForLowPass_ = float((1000 + maxAllowedPeriodLengthChangeBetweenMeasurements) / 1000);
+    lowerFactorForLowPass_ = float((10000 - maxAllowedPeriodLengthChangeBetweenMeasurements) / 10000);
+    upperFactorForLowPass_ = float((10000 + maxAllowedPeriodLengthChangeBetweenMeasurements) / 10000);
 }
 
 speedMeasurement::~speedMeasurement()
@@ -67,8 +67,7 @@ void speedMeasurement::updatePeriodLength()
 void speedMeasurement::useLowPass()
 {   
     int cp = mem_; // store current period (cp) length
-    float diff = 0;
-    diff = cp / periodLength_;
+    float diff = cp / periodLength_; // periodLength_ has a previous period length stored, cp the current one
     if (diff > upperFactorForLowPass_)
     {
         periodLength_ = int(cp * upperFactorForLowPass_);
