@@ -354,13 +354,25 @@ void core::updateAnalogMeasurements()
 
     int voltage = oilTemp_PN_Meas_.giveVoltage();
     oilTemp_PN_sens_resistance_ = int(float(voltage) / (float(Vcc - voltage) / float(Rin)));
-    if (lever_ == P || lever_ == N)
+    static bool transitionToNorP;
+    static bool transitionToRorD;
+    static int lastRealOilTemp_ = 0;
+    if ((lever_ == P || lever_ == N) && transitionToNorP)
     {
+        lastRealOilTemp_ = oilTemp_;
         oilTemp_ = -20;
+        transitionToNorP = false;
+        transitionToRorD = true;
     }
-    else
+    else if (lever_ == D || lever_ == R)
     {
-        oilTemp_ = config_.giveOilTempValue(oilTemp_PN_sens_resistance_); 
+        if (transitionToRorD)
+        {
+            oilTemp_ = lastRealOilTemp_;
+            transitionToRorD = false;
+        }
+        useLowPassForOilTemp(config_.giveOilTempValue(oilTemp_PN_sens_resistance_)); 
+        transitionToNorP = true;
     }
     TPSVoltage_ = TPS_Meas_.giveVoltage() * 2.5; //factor 2.5 because voltage-divider on PCB //ADC->ADC_CDR[6] / 1023.0 * 3300; 
     TPS_ = config_.giveTPSValue(TPSVoltage_);
@@ -372,6 +384,41 @@ void core::updateAnalogMeasurements()
     if (load_ > 100)
     {
         load_ = 100;
+    }
+}
+
+void core::useLowPassForOilTemp(int temp)
+{
+    static int upCounter = 0;
+    static int downCounter = 0;
+    int delaySpeed = 100;
+
+    if (oilTemp_ == temp)
+    {
+        upCounter = 0;
+        downCounter = 0;
+        return;
+    }
+    else if (temp > oilTemp_)
+    {
+        upCounter++;
+        downCounter = 0;
+    }
+    else if (temp < oilTemp_)
+    {
+        upCounter = 0;
+        downCounter++;
+    }
+
+    if (upCounter >= delaySpeed)
+    {
+        oilTemp_++;   
+        upCounter = 0;     
+    }
+    else if (downCounter >= delaySpeed)
+    {
+        oilTemp_--;
+        downCounter = 0;
     }
 }
 
@@ -389,7 +436,7 @@ void core::updateOilTempStatus()
 
 void core::calculateTPSdelayed()
 {
-    int delaySpeed = 80; // unit = ms / % -> how many ms it needs to increase TPSdelayed +1%
+    int delaySpeed = 80; // unit = ms / % -> how many ms it needs to decrease TPSdelayed -1 % unit
     static int counter;
     
     if (TPS_ < TPSdelayed_)
@@ -408,14 +455,6 @@ void core::calculateTPSdelayed()
         TPSdelayed_ = TPS_;
         counter = 0;
     }
-    //Serial.print(counter);
-    //Serial.print(" ");
-    //Serial.print(TPS_);
-    //Serial.print(" ");
-    //Serial.print(TPSprev);
-    //Serial.print(" ");
-    //Serial.println(TPSdelayed_);
-    //TPSprev = TPS_;
 }
 
 void core::updateLeverPosition()

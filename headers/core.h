@@ -239,6 +239,7 @@ class core
 		void updateSpeedMeasurements();		
 		void detectDriveType();
 		void updateAnalogMeasurements();
+		void useLowPassForOilTemp(int temp);
 		void updateOilTempStatus();
 		void calculateTPSdelayed();
 		void updateLeverPosition();
