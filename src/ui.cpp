@@ -528,7 +528,15 @@ void ui::drawMainScreen()
   }
   screen_.setCursor(105, 16);
   screen_.setFont(u8g2_font_synchronizer_nbp_tf);
-  screen_.print(*dataPtrs_.oilTemp);
+  if (*dataPtrs_.leverPosition == core::leverPos::R || *dataPtrs_.leverPosition == core::leverPos::D)
+  {
+    screen_.print(*dataPtrs_.oilTemp);
+  }
+  else
+  {
+    screen_.print("???");
+  }
+  
   screen_.drawStr(52, 26, "Load");
   screen_.setCursor(105, 26);
   screen_.print(*dataPtrs_.load);

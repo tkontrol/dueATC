@@ -6,7 +6,7 @@ core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicl
     secondaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 5, 2999, 1)), // 2900 rpm ~ 270 km/h
     n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 1)),
     n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 1)),
-    oilTemp_PN_Meas_(analogMeasurement(7, 10)), // 7 = pin A0    
+    oilTemp_PN_Meas_(analogMeasurement(7, 100)), // 7 = pin A0    
     MAP_Meas_(analogMeasurement(6, 5)), // 6 = pin A1
     TPS_Meas_(analogMeasurement(5, 5)), // 5 = pin A2
     shiftControl_(shiftControl()),
@@ -396,7 +396,7 @@ void core::updateAnalogMeasurements()
     if ((lever_ == P || lever_ == N) && transitionToNorP)
     {
         lastRealOilTemp_ = oilTemp_;
-        oilTemp_ = -20;
+        //oilTemp_ = -20;
         transitionToNorP = false;
         transitionToRorD = true;
     }
