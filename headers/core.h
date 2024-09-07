@@ -237,6 +237,7 @@ class core
 		void n2SpeedMeas();
 		void n3SpeedMeas();
 		void updateSpeedMeasurements();		
+		void useLowPassForTransmRatio(float ratio);
 		void detectDriveType();
 		void updateAnalogMeasurements();
 		void useLowPassForOilTemp(int temp);

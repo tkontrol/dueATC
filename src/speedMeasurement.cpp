@@ -32,7 +32,7 @@ void speedMeasurement::increaseCounter()
 // run on every rising edge
 void speedMeasurement::updatePeriodLength()
 {    
-    if (readDualSignal_)
+    if (readDualSignal_) // only for MSA15.7 ECU engine speed signal
     {
         if (evenOddCounter_ == 0)
         {
@@ -44,15 +44,14 @@ void speedMeasurement::updatePeriodLength()
             evenOddCounter_ = 0;
             dualMem2_ = counter_;
         }
-        // use shorter of the values, for cases when the speed signal contains two independent period lenghts, and you are interested in the shorter one
         if (dualMem1_ < dualMem2_)
         {
-            mem_ = dualMem2_;
+            mem_ = dualMem2_ - ((dualMem2_ - dualMem1_) / 2);
             counter_ = 0;
         }
         else
         {
-            mem_ = dualMem1_;
+            mem_ = dualMem1_ - ((dualMem1_ - dualMem2_) / 2);
             counter_ = 0;
         }
     }

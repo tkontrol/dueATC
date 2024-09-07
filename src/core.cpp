@@ -276,9 +276,7 @@ void core::updateSpeedMeasurements()
     primaryVehicleSpeed_ = primaryVehicleSpeedMeas_.giveRPM();
     secondaryVehicleSpeed_ = secondaryVehicleSpeedMeas_.giveRPM(); 
 
-    engineSpeed_ = engineSpeedMeas_.giveRPM() *1.28;
-    //engineSpeed_ = engineSpeedMeas_.giveRPM() - 100;
-    //if (engineSpeed_ < 0) {engineSpeed_ = 0;}
+    engineSpeed_ = engineSpeedMeas_.giveRPM();
 
     n2Speed_ = n2SpeedMeas_.giveRPM();
     n3Speed_ = n3SpeedMeas_.giveRPM();
@@ -297,6 +295,10 @@ void core::updateSpeedMeasurements()
 
     tcSlip_ = abs(engineSpeed_ - inputShaftSpeed_);
 
+    useLowPassForTransmRatio(float(inputShaftSpeed_) / float(cardanShaftSpeed_));
+    transmissionRatio_.isValid = true;
+
+    /*
     static int ratioLowPassCounter = 0;
     static float transmratioPrev = 0.00;
 
@@ -317,9 +319,43 @@ void core::updateSpeedMeasurements()
         ratioLowPassCounter = 0;
     } 
     //transmratioPrev = transmissionRatio_.ratio;
-    ratioLowPassCounter++;  
+    ratioLowPassCounter++;  */    
+}
 
-    transmissionRatio_.isValid = true;
+void core::useLowPassForTransmRatio(float ratio)
+{
+    static int upCounter = 0;
+    static int downCounter = 0;
+    int delaySpeed = 5; // for every delaySpeed (ms)
+    float step = 0.01; // increase/decrease ratio by one step
+
+    if (transmissionRatio_.ratio == ratio)
+    {
+        upCounter = 0;
+        downCounter = 0;
+        return;
+    }
+    else if (ratio > transmissionRatio_.ratio)
+    {
+        upCounter++;
+        downCounter = 0;
+    }
+    else if (ratio < transmissionRatio_.ratio)
+    {
+        upCounter = 0;
+        downCounter++;
+    }
+
+    if (upCounter >= delaySpeed)
+    {
+        transmissionRatio_.ratio = transmissionRatio_.ratio + step;   
+        upCounter = 0;     
+    }
+    else if (downCounter >= delaySpeed)
+    {
+        transmissionRatio_.ratio = transmissionRatio_.ratio - step;
+        downCounter = 0;
+    }
 }
 
 void core::detectDriveType()
@@ -391,7 +427,7 @@ void core::useLowPassForOilTemp(int temp)
 {
     static int upCounter = 0;
     static int downCounter = 0;
-    int delaySpeed = 100;
+    int delaySpeed = 100; // for every delaySpeed (ms), increase/decrease oilTemp_ by 1
 
     if (oilTemp_ == temp)
     {
