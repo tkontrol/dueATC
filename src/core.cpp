@@ -37,7 +37,7 @@ void core::initController()
     lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_, dOrRengaged_, engineSpeed_, vehicleSpeed_,
     overridePressureValues_, overridedMPCValue_, overridedSPCValue_);
     TCCcontrol_.setOutputLimits(0, 100);
-    TCCcontrol_.setMeasurementPointers(engineSpeed_, inputShaftSpeed_);
+    TCCcontrol_.setMeasurementPointers(tcSlip_);
     TCCcontrol_.setTCCmode(tccMode_); // WHERE TO GET THIS SETTING?
 
     useGearRatioDetection_ = false; // REMOVE AFTER TESTING
@@ -90,6 +90,7 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     doAutoShifts();
     makeUpShiftCommand();
     makeDownShiftCommand();
+    TCCcontrol_.calculatePIOutput();
     shiftControl_.runShifts();
     updateLog();
     brakePedalSwitchState_ = brakePedal_.giveState();
@@ -293,33 +294,46 @@ void core::updateSpeedMeasurements()
         inputShaftSpeed_ = (n2Speed_ + n3Speed_) / 2; //when gear is 2, 3 or 4, n3 speed is not zero, and then incoming shaft speed (=turbine speed) equals to n2 speed
     }
 
-    tcSlip_ = abs(engineSpeed_ - inputShaftSpeed_);
+    //tcSlip_ = engineSpeed_ - inputShaftSpeed_;
+    useLowPassForTCSlip(abs(engineSpeed_ - inputShaftSpeed_));
 
     useLowPassForTransmRatio(float(inputShaftSpeed_) / float(cardanShaftSpeed_));
-    transmissionRatio_.isValid = true;
+    transmissionRatio_.isValid = true;   
+}
 
-    /*
-    static int ratioLowPassCounter = 0;
-    static float transmratioPrev = 0.00;
+void core::useLowPassForTCSlip(int slip)
+{
+    static int upCounter = 0;
+    static int downCounter = 0;
+    int delaySpeed = 1; // for every delaySpeed (ms), increase/decrease tcSlip_ by 1
 
-    if (ratioLowPassCounter == 100)
+    if (tcSlip_ == slip)
     {
-        transmissionRatio_.ratio = float(inputShaftSpeed_) / float(cardanShaftSpeed_); 
+        upCounter = 0;
+        downCounter = 0;
+        return;
+    }
+    else if (slip > tcSlip_)
+    {
+        upCounter++;
+        downCounter = 0;
+    }
+    else if (slip < tcSlip_)
+    {
+        upCounter = 0;
+        downCounter++;
+    }
 
-        if (transmissionRatio_.ratio > transmratioPrev + 0.001)
-        {
-            transmissionRatio_.ratio = transmissionRatio_.ratio + 0.001;
-        }
-        else if (transmissionRatio_.ratio < transmratioPrev - 0.001)
-        {
-            transmissionRatio_.ratio = transmissionRatio_.ratio - 0.001;
-        }
-
-        transmratioPrev = transmissionRatio_.ratio;
-        ratioLowPassCounter = 0;
-    } 
-    //transmratioPrev = transmissionRatio_.ratio;
-    ratioLowPassCounter++;  */    
+    if (upCounter >= delaySpeed)
+    {
+        tcSlip_++;   
+        upCounter = 0;     
+    }
+    else if (downCounter >= delaySpeed)
+    {
+        tcSlip_--;
+        downCounter = 0;
+    }
 }
 
 void core::useLowPassForTransmRatio(float ratio)
@@ -579,7 +593,7 @@ void core::checkIfCurrentGearEqualsMeasuredGear()
 void core::shiftTo1stInP()
 {
     static int counter;
-    if (startWith1StGear_ && lever_ == P && engineSpeed_ > 800 && currentGear_ == 2 && vehicleSpeed_ == 0 && !shifting_)
+    if (startWith1StGear_ && lever_ == P && engineSpeed_ > 700 && currentGear_ == 2 && vehicleSpeed_ == 0 && !shifting_)
     {
         counter++;
     }
@@ -741,7 +755,7 @@ void core::updateLog()
 
             case TCSlipAndTCControl:
                 var1 = *TCCcontrol_.giveOutputPointer();
-                var2 = tcSlip_; // engineSpeed_ - inputShaftSpeed_;
+                var2 = tcSlip_;
             break;
 
             case oilTemp:
@@ -1000,6 +1014,7 @@ struct core::dataStruct core::giveDataPointers()
     data_.MPCchange = &lastMPCchange_;
     data_.SPCchange = &lastSPCchange_;
     data_.tccControlOutput = TCCcontrol_.giveOutputPointer();
+    data_.tccSlipSetpoint = TCCcontrol_.giveSetpointPointer();
     data_.malfuncs = &malfunctions_;
     return data_;
 }

@@ -10,15 +10,19 @@ TCCcontrol::~TCCcontrol()
 
 }
 
-void TCCcontrol::setMeasurementPointers(int &engineSpeed, int &incomingShaftSpeed)
+void TCCcontrol::setMeasurementPointers(int &slip)
 {
-    engineSpeed_ = &engineSpeed;
-    incomingShaftSpeed_ = &incomingShaftSpeed;
+    tcSlip_ = &slip;
 }
 
 int* TCCcontrol::giveOutputPointer()
 {
     return &output_;
+}
+
+int* TCCcontrol::giveSetpointPointer()
+{
+    return &setPoint_;
 }
 
 void TCCcontrol::setOutputLimits(int lowerLimit, int upperLimit)
@@ -30,13 +34,11 @@ void TCCcontrol::setOutputLimits(int lowerLimit, int upperLimit)
 void TCCcontrol::setKP(int kp)
 {
     kp_ = kp;
-    Serial.println(kp_);
 }
 
 void TCCcontrol::setKI(int ki)
 {
     ki_ = ki;
-    Serial.println(ki_);
 }
 
 void TCCcontrol::setTCCmode(TCCcontrol::TCCMode &mode)
@@ -53,7 +55,7 @@ void TCCcontrol::updateTCC()
         break;
 
         case slipping:
-            //REG_PWM_CDTYUPD2 = givePIOutput(); //pin 38/39, PI control
+            //REG_PWM_CDTYUPD2 = output_; //pin 38/39, PI control
         break;
 
         case closed:
@@ -62,21 +64,18 @@ void TCCcontrol::updateTCC()
     }
 }
 
-int TCCcontrol::givePIOutput()
+int TCCcontrol::calculatePIOutput() // call at 1ms intervals...
 {   
     static int counterTimer = 0;
     counterTimer++;
-    if (counterTimer == 100)
+    if (counterTimer == 100) // ...so that the calculation is done in 100ms intervals
     {
         counterTimer = 0;
         static int iterm = 0;
-        int slip = abs(*engineSpeed_ - *incomingShaftSpeed_);
-        int error = setPoint_ - slip;  
+        int error = *tcSlip_ - setPoint_;  
 
-        if (output_ < outputUpperLimit_ && output_ > outputLowerLimit_) //integer windup
-        {
-            iterm = error * ki_ + iterm;  
-        }   
+        iterm = error * ki_ + iterm;   
+        
 
         output_ = kp_ * error + iterm; 
 
@@ -88,7 +87,12 @@ int TCCcontrol::givePIOutput()
         {
             output_ = outputLowerLimit_;
         }
-       // Serial.println(slip);
+        Serial.print("err: ");
+        Serial.print(error);
+        Serial.print("  iterm: ");
+        Serial.print(iterm);
+        Serial.print("  output: ");
+        Serial.println(output_);
     }
     return output_;    
 }

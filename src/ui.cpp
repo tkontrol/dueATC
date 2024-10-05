@@ -670,12 +670,12 @@ void ui::drawLiveData2()
   screen_.setCursor(columnXPos, firstLine+lineGap*3);
   screen_.print(*dataPtrs_.tcSlip);  
   screen_.drawLine(0, firstLine+lineGap*3+1, 128, firstLine+lineGap*3+1);  
-  /*
-  screen_.drawStr(0, firstLine+lineGap*4, "CPU temp, C:");
+  
+  screen_.drawStr(0, firstLine+lineGap*4, "TC slip target, rpm:");
   screen_.setCursor(columnXPos, firstLine+lineGap*4);
-  screen_.print(cpuTemp);  
+  screen_.print(*dataPtrs_.tccSlipSetpoint);  
   screen_.drawLine(0, firstLine+lineGap*4+1, 128, firstLine+lineGap*4+1);
- 
+  /*
   screen_.drawStr(0, firstLine+lineGap*5, "Transm. ratio:");
   screen_.setCursor(columnXPos, firstLine+lineGap*5);
   screen_.print(*dataPtrs_.transmissionRatio);   */
@@ -921,9 +921,13 @@ bool ui::plotTCSlipAndCtrl()
   core_.setLoggableVariable(core::TCSlipAndTCControl);
   plotDataForDualYAxis(false);
 
-  screen_.setCursor(28, 8);
-  screen_.print("TC slip: ");
+  screen_.setCursor(26, 8);
+  screen_.print("slip: ");
   screen_.print(int(log_->y2Data[0]));
+  screen_.setCursor(64, 8);
+  screen_.print("(");
+  screen_.print(*dataPtrs_.tccSlipSetpoint);
+  screen_.print(")");
   screen_.setCursor(85, 8);
   screen_.print("ctrl: ");
   screen_.print(log_->y1Data[0]);
@@ -2168,9 +2172,13 @@ bool ui::showTCCTuneView()
   plotDataForDualYAxis(false, true);
   screen_.setFont(u8g_font_4x6r);
 
-  screen_.setCursor(28, 8);
-  screen_.print("TC slip: ");
+  screen_.setCursor(26, 8);
+  screen_.print("slip: ");
   screen_.print(int(log_->y2Data[0]));
+  screen_.setCursor(64, 8);
+  screen_.print("(");
+  screen_.print(*dataPtrs_.tccSlipSetpoint);
+  screen_.print(")");
   screen_.setCursor(85, 8);
   screen_.print("ctrl: ");
   screen_.print(log_->y1Data[0]);

@@ -6,9 +6,7 @@
 class TCCcontrol  
 {
 	private:
-
-		int* engineSpeed_;
-		int* incomingShaftSpeed_;
+		int* tcSlip_;
 
 		int setPoint_ = 50;
 		int output_;
@@ -27,15 +25,16 @@ class TCCcontrol
 		enum TCCMode {open, slipping, closed};
 		TCCMode* TCCmode_;
 
-		void setMeasurementPointers(int &engineSpeed, int &incomingShaftSpeed);
+		void setMeasurementPointers(int &slip);
 		int* giveOutputPointer();
+		int* giveSetpointPointer();
 		void setOutputLimits(int lowerLimit, int upperLimit);
 		void setKP(int kp);
 		void setKI(int ki);
 		void setTCCmode(TCCcontrol::TCCMode &mode);
 
 		void updateTCC();
-		int givePIOutput();
+		int calculatePIOutput();
 
 };
 #endif

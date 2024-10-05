@@ -205,6 +205,7 @@ class core
 			char* MPCchange;
 			char* SPCchange;
 			int* tccControlOutput;
+			int* tccSlipSetpoint;
 			malfunctionMemory* malfuncs;
 		};	
 
@@ -236,7 +237,8 @@ class core
 		void secondaryVehicleSpeedMeas();
 		void n2SpeedMeas();
 		void n3SpeedMeas();
-		void updateSpeedMeasurements();		
+		void updateSpeedMeasurements();	
+		void useLowPassForTCSlip(int slip);	
 		void useLowPassForTransmRatio(float ratio);
 		void detectDriveType();
 		void updateAnalogMeasurements();
