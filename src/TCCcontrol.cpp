@@ -74,8 +74,11 @@ int TCCcontrol::calculatePIOutput() // call at 1ms intervals...
         static int iterm = 0;
         int error = *tcSlip_ - setPoint_;  
 
-        iterm = error * ki_ + iterm;   
-        
+        if ((output_ < outputUpperLimit_ || error < 0) && (output_ > outputLowerLimit_ || error > 0))
+        {
+            iterm = error * ki_ + iterm;
+            //Serial.println("calc!");
+        }         
 
         output_ = kp_ * error + iterm; 
 
@@ -87,12 +90,12 @@ int TCCcontrol::calculatePIOutput() // call at 1ms intervals...
         {
             output_ = outputLowerLimit_;
         }
-        Serial.print("err: ");
-        Serial.print(error);
-        Serial.print("  iterm: ");
-        Serial.print(iterm);
-        Serial.print("  output: ");
-        Serial.println(output_);
+       // Serial.print("err: ");
+       // Serial.print(error);
+       // Serial.print("  iterm: ");
+       // Serial.print(iterm);
+       // Serial.print("  output: ");
+       // Serial.println(output_);
     }
     return output_;    
 }

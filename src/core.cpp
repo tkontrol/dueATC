@@ -1,11 +1,11 @@
 #include "../headers/core.h"
 
 core::core(int speedMeasInterruptInterval, int engineSpeedPin, int primaryVehicleSpeedPin, int secondaryVehicleSpeedPin, int n2SpeedPin, int n3SpeedPin):
-    engineSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 100, 9999, 1, true)),
+    engineSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 100, 9999, 10, true)),
     primaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 5, 2999, 1)), // 2900 rpm ~ 270 km/h
     secondaryVehicleSpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 5, 2999, 1)), // 2900 rpm ~ 270 km/h
-    n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 1)),
-    n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 1)),
+    n2SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 100)),
+    n3SpeedMeas_(speedMeasurement(speedMeasInterruptInterval, 10, 9999, 100)),
     oilTemp_PN_Meas_(analogMeasurement(7, 100)), // 7 = pin A0    
     MAP_Meas_(analogMeasurement(6, 5)), // 6 = pin A1
     TPS_Meas_(analogMeasurement(5, 5)), // 5 = pin A2
@@ -104,6 +104,20 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
         notificationTimerCounter_++;
     }
     testcounter_++; 
+
+/*
+    Serial.print("|n2:");
+    Serial.print(n2Speed_);
+    Serial.print("|n3:");
+    Serial.print(n3Speed_);
+    Serial.print("|v:");
+    Serial.print(vehicleSpeed_);
+    Serial.print("|r:");
+    Serial.print(transmissionRatio_.ratio);
+    Serial.print("|mg:");
+    Serial.print(measuredGear_);
+    Serial.print("|sh:");
+    Serial.println(shifting_); */
 }
 
 void core::startupProcedure()
@@ -285,7 +299,7 @@ void core::updateSpeedMeasurements()
     
 
     //calculating input shaft speed 
-    if (n3n2Ratio_ <= 0.5) // actually, when n3Speed_ = 0. Presumably the shaft takes some time to slow down to 0, so this is just to speed up the measurement 
+    if (n3n2Ratio_ <= 0.9) // actually, when n3Speed_ = 0. Presumably the shaft takes some time to slow down to 0, so this is just to speed up the measurement 
     {
         inputShaftSpeed_ = int(float(n2Speed_) * 1.64); // 1.64 is the ratio from n2 sensor's shaft to incoming shaft speed (=turbine speed), when gear is 1 or 5 (=n3 speed is zero)
     }
@@ -294,8 +308,8 @@ void core::updateSpeedMeasurements()
         inputShaftSpeed_ = (n2Speed_ + n3Speed_) / 2; //when gear is 2, 3 or 4, n3 speed is not zero, and then incoming shaft speed (=turbine speed) equals to n2 speed
     }
 
-    //tcSlip_ = engineSpeed_ - inputShaftSpeed_;
-    useLowPassForTCSlip(abs(engineSpeed_ - inputShaftSpeed_));
+    tcSlip_ = abs(engineSpeed_ - inputShaftSpeed_);
+    //useLowPassForTCSlip(abs(engineSpeed_ - inputShaftSpeed_));
 
     useLowPassForTransmRatio(float(inputShaftSpeed_) / float(cardanShaftSpeed_));
     transmissionRatio_.isValid = true;   
@@ -486,7 +500,8 @@ void core::updateOilTempStatus()
 
 void core::calculateTPSdelayed()
 {
-    int delaySpeed = 80; // unit = ms / % -> how many ms it needs to decrease TPSdelayed -1 % unit
+    int delaySpeed = 100 - TPSdelayed_; // unit = ms / % -> how many ms it needs to decrease TPSdelayed -1 % unit
+                                        // this is to make TPSdelayed_ decrease rate logarithmic
     static int counter;
     
     if (TPS_ < TPSdelayed_)
@@ -494,7 +509,7 @@ void core::calculateTPSdelayed()
         counter++;
     }
 
-    if (counter == delaySpeed && TPSdelayed_ > 0)
+    if (counter >= delaySpeed && TPSdelayed_ > 0)
     {
         TPSdelayed_--;
         counter = 0;
@@ -558,16 +573,36 @@ void core::updateLeverPosition()
 
 void core::updateGearByN3N2Ratio()
 {
-    if (lever_ == P && engineSpeed_ > 800 && !shifting_)
+    static int counterFor1;
+    static int counterFor2;
+    if (lever_ == P && engineSpeed_ > 700 && !shifting_)
     {
         if (n3n2Ratio_ <= 0.50 && currentGear_ != 1)
         {
-            shiftControl_.forceGearVariables(1);
+            counterFor1++;
+            counterFor2 = 0;
         }
         else if (n3n2Ratio_ >= 0.50 && currentGear_ != 2)
         {
-            shiftControl_.forceGearVariables(2);
+            counterFor1 = 0;
+            counterFor2++;
         }
+    }
+    else
+    {
+        counterFor1 = 0;
+        counterFor2 = 0;
+    }
+
+    if (counterFor1 >= 1000)
+    {
+        shiftControl_.forceGearVariables(1);
+        counterFor1 = 1000; // to prevent overflow
+    }
+    if (counterFor2 >= 1000)
+    {
+        shiftControl_.forceGearVariables(2);
+        counterFor2 = 1000; // to prevent overflow
     }
 }
 
@@ -601,7 +636,7 @@ void core::shiftTo1stInP()
     {
         counter = 0;
     }
-    if (counter == 1000)
+    if (counter == 1000) //delay, ms
     {
         targetGear_ = 1;
     }
@@ -665,13 +700,15 @@ void core::doAutoShifts()
         {
             return; // config_ returns 0 -> no need to shift atm, exit function
         }
-        else if ((vehicleSpeed_ <= 7 || currentGearMatchesMeasuredGear_))
+        // if speed is above gear ratio detection threshold, make sure currentGear matches measuredGear
+        else if ((vehicleSpeed_ <= minimumVehicleSpeedForGearRatioDetection_ || currentGearMatchesMeasuredGear_))
         {
             targetGear_ = autoModeTargetGear_;
         }
     }
 
-    if (vehicleSpeed_ > 0 && vehicleSpeed_ <= 7 && shiftingMode_ == AUT)
+    // if speed is below gear ratio detection threshold, use preshiftDelay
+    if (vehicleSpeed_ > 0 && vehicleSpeed_ <= minimumVehicleSpeedForGearRatioDetection_ && shiftingMode_ == AUT)
     {
         usePreShiftDelay_ = true;
     }

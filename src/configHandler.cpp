@@ -60,13 +60,14 @@ void configHandler::setObjectIDs() // sets IDs for every object as they exist in
     shiftTimeTargetMap_ = {"Shift_time_target_map", 200, 2000}; // this is still not used anywhere!!
     engSpdLoadFactorMap_ = {"Eng_spd_load_factor", 0, 100}; // this is still not used anywhere!!
 
+    // for parameters the call order is; ID, unit, minData, maxData, defaultData, foundFromSD, data
     engSpdOilPressureCorrectionMap_ = {"Eng_spd_oil_press_correction", 0, 100, 0};
     MAPLinearizationMap_ = {"MAP_linearization_map", 0, 5000, 0};
     TPSLinearizationMap_ = {"TPS_linearization_map", 0, 5000, 0};
     oilTempMap_ = {"ATF_temp_sensor_linearization", 0, 3000, 0};
 
     startWith1StGear_ = {"Start_with_1St_gear","bool", 0, 1, 0};
-    minimumVehicleSpeedForGearRatioDetection_ = {"Min_vehicle_spd_for_gear_ratio_detection","km/h", 0, 100, 100};
+    minimumVehicleSpeedForGearRatioDetection_ = {"Min_vehicle_spd_for_gear_ratio_detection","km/h", 0, 15, 10};
     wheelCircum_ = {"Wheel_circum","mm", 1000, 3000, 2000};
     finalDriveRatiox100_ = {"Final_drive_ratio_x100", "int/100", 100, 600};
     brightness_ = {"Screen_brightness", "%", 0, 100, 100};
