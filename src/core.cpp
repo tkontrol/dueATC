@@ -87,8 +87,6 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     checkIfCurrentGearEqualsMeasuredGear();
     updateCurrentGearByMeasuredGear();
     doAutoShifts();
-    makeUpShiftCommand();
-    makeDownShiftCommand();
     TCCcontrol_.calculatePIOutput();
     shiftControl_.runShifts();
     updateLog();
@@ -849,62 +847,6 @@ void core::gearDownRequest() // for manual downshift, call this
     {
         targetGear_ --;
     }
-}
-
-void core::makeUpShiftCommand()
-{/*
-    static int delayCounter = 0;
-    static bool counting;
-
-    if (gearUpReq_ && delayCounter == 0 && usePreShiftDelay_ ) //start shift after delay
-    {
-        counting = true;
-        //gearUpReq_ = false;
-    }
-    else if (gearUpReq_ && !usePreShiftDelay_) //direct shift w/o delay
-    {
-        gearUpReq_ = false;
-        gearUpComm_ = true;
-    }
-    if (counting)
-    {
-        delayCounter++;
-    }
-    if (delayCounter == 1000)
-    {
-        gearUpReq_ = false;
-        counting = false;
-        delayCounter = 0;
-        gearUpComm_ = true;
-    }*/
-}
-
-void core::makeDownShiftCommand()
-{ /*
-    static int delayCounter = 0;
-    static bool counting;
-
-    if (gearDownReq_ && delayCounter == 0 && usePreShiftDelay_ ) //start shift after delay
-    {
-        counting = true;
-        //gearDownReq_ = false;
-    }
-    else if (gearDownReq_ && !usePreShiftDelay_) //direct shift w/o delay
-    {
-        gearDownReq_ = false;
-        gearDownComm_ = true;
-    }
-    if (counting)
-    {
-        delayCounter++;
-    }
-    if (delayCounter == 1000)
-    {
-        gearDownReq_ = false;
-        counting = false;
-        delayCounter = 0;
-        gearDownComm_ = true;
-    } */
 }
 
 void core::setLoggableVariable(core::loggableVariable var)

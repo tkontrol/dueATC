@@ -266,9 +266,6 @@ class core
 
 		void gearUpRequest();
 		void gearDownRequest();
-
-		void makeUpShiftCommand();
-		void makeDownShiftCommand();
 		bool toggleAutoMan();
 		bool giveMalfunctionStatus();
 		void clearFaultCodes();
