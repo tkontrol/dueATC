@@ -23,5 +23,4 @@ https://www.youtube.com/watch?v=vycVulFN1EY
 UPDATE 10.11.2024:
 Some pictures of the PCB rev 0.4
 
-![Alt text](PCB/PCB rev 0.4/layout.png)
-![Alt text](PCB/PCB rev 0.4/ready.jpg)
+<img src="PCB/PCB rev 0.4/layout.png" width="300" />
