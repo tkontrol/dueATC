@@ -106,8 +106,6 @@ class core
 		bool gearDownComm_;
 
 		bool shiftPermission_;
-		bool usePreShiftDelay_ = false;
-		int preShiftDelay_ = 1500;
 		bool startWith1StGear_;
 		bool enableAutoModeAtStartup_;
 		int lastShiftDuration_;	

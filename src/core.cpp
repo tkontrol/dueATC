@@ -33,7 +33,7 @@ void core::initController()
 
     config_.initMaps();
     parametersPtr_ = config_.givePtrToConfigurationSet()->parameters; // receive pointer to parameters. otherwise than maps container pointer, this is used also by core
-    shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, usePreShiftDelay_, preShiftDelay_, shifting_,
+    shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, shifting_,
     lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_, dOrRengaged_, engineSpeed_, vehicleSpeed_,
     overridePressureValues_, overridedMPCValue_, overridedSPCValue_);
     TCCcontrol_.setOutputLimits(0, 100);
@@ -722,16 +722,6 @@ void core::doAutoShifts()
             targetGear_ = autoModeTargetGear_;
         }
     }
-
-    // if speed is below gear ratio detection threshold, use preshiftDelay
-    if (vehicleSpeed_ > 0 && vehicleSpeed_ <= minimumVehicleSpeedForGearRatioDetection_ && shiftingMode_ == AUT)
-    {
-        usePreShiftDelay_ = false;
-    }
-    else
-    {
-        usePreShiftDelay_ = false;
-    }
 }
 
 bool core::toggleAutoMan()
@@ -740,7 +730,6 @@ bool core::toggleAutoMan()
     {
         shiftingMode_ = AUT;
         return true;
-        //usePreShiftDelay_ = true;
     }
     else if (shiftingMode_ == MAN && !configOK_)
     {
@@ -750,7 +739,6 @@ bool core::toggleAutoMan()
     {
         shiftingMode_ = MAN;
         return true;
-        //usePreShiftDelay_ = false;
     }
 }
 

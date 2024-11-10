@@ -11,7 +11,7 @@ shiftControl::~shiftControl()
 }
 
 void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, uint8_t &SPC, configHandler::driveType &driveType,
- int &oilTemp, uint8_t &load, uint8_t &currentGear, uint8_t &targetGear, bool &usePreShiftDelay, int &preShiftDelay, bool &shifting,
+ int &oilTemp, uint8_t &load, uint8_t &currentGear, uint8_t &targetGear, bool &shifting,
  int &lastShiftDuration, float &transmissionRatio, bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed,
  int &vehicleSpeed, bool &overridePressureValues, uint8_t &overridedMPCValue, uint8_t &overridedSPCValue)
 {
@@ -24,9 +24,6 @@ void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, 
     currentGear_ = &currentGear;
     nextGear_ = *currentGear_; // get initial status
 	targetGear_ = &targetGear;
-    targetGearDelayed_ = *targetGear_; // get initial status
-    usePreShiftDelay_ = &usePreShiftDelay;
-    preShiftDelay_ = &preShiftDelay;
     shifting_ = &shifting;
     lastShiftDuration_ = &lastShiftDuration;
     transmissionRatio_ = &transmissionRatio;
@@ -45,17 +42,18 @@ void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, 
 
 void shiftControl::runShifts()
 {
-    checkIfPreshiftDelayIsNeeded();
+    //checkIfPreshiftDelayIsNeeded();
+   //uint8_t targetGearForShift = *targetGear_;
     if (!*shifting_ && *shiftPermission_) // shift starts here
     {
-        if (targetGearDelayed_ > *currentGear_ && *currentGear_ < 5) // upshifts
+        if (*targetGear_ > *currentGear_ && *currentGear_ < 5) // upshifts
         {
             nextGear_ = *currentGear_ + 1;
             // read parameters into temp variables and apply them for this one particular shift:
             currentGearForShift_ = *currentGear_;            
             useGearRatioDetectionForShift_ = *useGearRatioDetection_;             
         }
-        else if (targetGearDelayed_ < *currentGear_ && *currentGear_ > 1) // downshifts
+        else if (*targetGear_ < *currentGear_ && *currentGear_ > 1) // downshifts
         {
             nextGear_ = *currentGear_ - 1;
             // read parameters into temp variables and apply them for this one particular shift:
@@ -129,7 +127,7 @@ void shiftControl::forceGearVariables(uint8_t gear)
 {
     if (!*shifting_)
     {
-        *currentGear_ = currentGearForShift_ = *targetGear_ = targetGearDelayed_ = nextGear_ = gear;
+        *currentGear_ = currentGearForShift_ = *targetGear_ = nextGear_ = gear;
     }
 }
 
@@ -164,10 +162,6 @@ void shiftControl::controlPressureSolenoids()
     
     if (*SPC_ > 100){*SPC_ = 100;}
     if (*MPC_ > 100){*MPC_ = 100;}
-    //Serial.print(*MPC_);
-    //Serial.print("  ");
-    //Serial.println(*SPC_);
-    //Serial.print("  ");
     REG_PWM_CDTYUPD0 = *MPC_; //pin 34/35, control the MPC solenoid
     REG_PWM_CDTYUPD1 = *SPC_; //pin 36/37, control the SPC solenoid   
 }
@@ -295,42 +289,6 @@ bool shiftControl::checkIfTransmissionRatioMatchesForGear(uint8_t gear)
             return true;
         }
         break;
-    }
-}
-
-void shiftControl::checkIfPreshiftDelayIsNeeded()
-{
-    static int delayCounter = 0;
-    static bool counting;
-
-    if (!*usePreShiftDelay_) // direct shift without delay
-    {
-        targetGearDelayed_ = *targetGear_;
-    }
-    else
-    {
-        if (delayCounter == 0 && *targetGear_ != *currentGear_ && !*shifting_)
-        {
-            counting = true;
-        }
-        if (counting)
-        {
-            delayCounter++;
-        }
-        if (delayCounter == *preShiftDelay_)
-        {
-            counting = false;
-            delayCounter = 0;
-            if (*targetGear_ > *currentGear_)
-            {
-                targetGearDelayed_++;
-            }
-            else if (*targetGear_ < *currentGear_)
-            {
-                targetGearDelayed_--;
-            }
-            //targetGearDelayed_ = *targetGear_;
-        }
     }
 }
 
