@@ -19,3 +19,9 @@ Sorry for the Finnish language comments left in the code. :D
 UPDATE 20.4.2024:
 Finally the PCB rev 0.4 got to be mature enough to test it in the car - see;
 https://www.youtube.com/watch?v=vycVulFN1EY
+
+UPDATE 10.11.2024:
+Some pictures of the PCB rev 0.4
+
+![Alt text](PCB/PCB rev 0.4/layout.png)
+![Alt text](PCB/PCB rev 0.4/ready.jpg)
