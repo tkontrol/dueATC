@@ -34,13 +34,12 @@ void core::initController()
     config_.initMaps();
     parametersPtr_ = config_.givePtrToConfigurationSet()->parameters; // receive pointer to parameters. otherwise than maps container pointer, this is used also by core
     shiftControl_.initShiftControl(config_, MPC_, SPC_, driveType_, oilTemp_, load_, currentGear_, targetGear_, shifting_,
-    lastShiftDuration_, transmissionRatio_.ratio, useGearRatioDetection_, shiftPermission_, dOrRengaged_, engineSpeed_, vehicleSpeed_,
+    lastShiftDuration_, transmissionRatio_.ratio, shiftPermission_, dOrRengaged_, engineSpeed_, vehicleSpeed_,
     overridePressureValues_, overridedMPCValue_, overridedSPCValue_);
     TCCcontrol_.setOutputLimits(0, 100);
     TCCcontrol_.setMeasurementPointers(tcSlip_);
     TCCcontrol_.setTCCmode(tccMode_); // WHERE TO GET THIS SETTING?
 
-    useGearRatioDetection_ = false; // REMOVE AFTER TESTING
     shiftPermission_ = true; // REMOVE AFTER TESTING
 
     notification_.pending = false;
@@ -741,21 +740,6 @@ bool core::toggleAutoMan()
         return true;
     }
 }
-
-void core::toggleRatioDetection()
-{
-    if (useGearRatioDetection_)
-    {
-        useGearRatioDetection_ = false;
-        //Serial.println("ratio detection off");
-    }
-    else
-    {
-        useGearRatioDetection_ = true;
-        //Serial.println("ratio detection on");
-    }
-}
-
 void core::updateLog()
 {
     if (logging_) // if logging is active

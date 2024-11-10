@@ -28,9 +28,7 @@ class shiftControl
 		int shiftTimer_;
 		int* lastShiftDuration_;
 		int shiftSolenoidTimeForShift_;
-		float* transmissionRatio_;
-		bool* useGearRatioDetection_;
-		bool useGearRatioDetectionForShift_;		
+		float* transmissionRatio_;	
 		bool* shiftPermission_;
 		int* engineSpeed_;
 		int* vehicleSpeed_;
@@ -49,7 +47,7 @@ class shiftControl
 
 		void initShiftControl(configHandler &configHandler, uint8_t &MPC, uint8_t &SPC, configHandler::driveType &driveType, int &oilTemp, uint8_t &load,
  		uint8_t &currentGear, uint8_t &targetGear, bool &shifting, int &lastShiftDuration, float &transmissionRatio,
-		bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed, int &vehicleSpeed, bool &overridePressureValues, uint8_t &overridedMPCValue, uint8_t &overridedSPCValue);
+		bool &shiftPermission, bool &dOrRengaged, int &engineSpeed, int &vehicleSpeed, bool &overridePressureValues, uint8_t &overridedMPCValue, uint8_t &overridedSPCValue);
 		void runShifts();
 		void forceGearVariables(uint8_t gear);
 		uint8_t checkIfTransmissionRatioMatchesAnyGear();

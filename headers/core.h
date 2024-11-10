@@ -83,7 +83,6 @@ class core
 		uint8_t MPC_;
 		uint8_t SPC_;
 		float n3n2Ratio_;
-		//float transmissionRatio_;
 
 		struct transmissionRatio
 		{
@@ -96,7 +95,6 @@ class core
 		int logTimerCounter_;
 		bool logging_;
 		int shiftTimer_;
-		bool useGearRatioDetection_;
 		int minimumVehicleSpeedForGearRatioDetection_;
 		bool shifting_;
 		bool gearUpReq_;
@@ -272,7 +270,6 @@ class core
 		void makeUpShiftCommand();
 		void makeDownShiftCommand();
 		bool toggleAutoMan();
-		void toggleRatioDetection();
 		bool giveMalfunctionStatus();
 		void clearFaultCodes();
 

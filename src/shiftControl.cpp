@@ -12,7 +12,7 @@ shiftControl::~shiftControl()
 
 void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, uint8_t &SPC, configHandler::driveType &driveType,
  int &oilTemp, uint8_t &load, uint8_t &currentGear, uint8_t &targetGear, bool &shifting,
- int &lastShiftDuration, float &transmissionRatio, bool &useGearRatioDetection, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed,
+ int &lastShiftDuration, float &transmissionRatio, bool &shiftPermission, bool &dOrRengaged, int &engineSpeed,
  int &vehicleSpeed, bool &overridePressureValues, uint8_t &overridedMPCValue, uint8_t &overridedSPCValue)
 {
     config_ = &configHandler;
@@ -27,7 +27,6 @@ void shiftControl::initShiftControl(configHandler &configHandler, uint8_t &MPC, 
     shifting_ = &shifting;
     lastShiftDuration_ = &lastShiftDuration;
     transmissionRatio_ = &transmissionRatio;
-    useGearRatioDetection_ = &useGearRatioDetection;
     shiftPermission_ = &shiftPermission;
     dOrRengaged_ = &dOrRengaged;
     engineSpeed_ = &engineSpeed;
@@ -50,64 +49,20 @@ void shiftControl::runShifts()
         {
             nextGear_ = *currentGear_ + 1;
             // read parameters into temp variables and apply them for this one particular shift:
-            currentGearForShift_ = *currentGear_;            
-            useGearRatioDetectionForShift_ = *useGearRatioDetection_;             
+            currentGearForShift_ = *currentGear_;                    
         }
         else if (*targetGear_ < *currentGear_ && *currentGear_ > 1) // downshifts
         {
             nextGear_ = *currentGear_ - 1;
             // read parameters into temp variables and apply them for this one particular shift:
-            currentGearForShift_ = *currentGear_;            
-            useGearRatioDetectionForShift_ = *useGearRatioDetection_;            
+            currentGearForShift_ = *currentGear_;                     
         }
         shiftTimer_ = 0;
     }
 
     if (*shifting_) // what is executed during shift
-    {        
-        if (useGearRatioDetectionForShift_)
-        { /*
-            if (checkIfTransmissionRatioMatchesForGear(nextGear_) && shiftTimer_ > 100) // if ratio is reached in plausible time,
-            { // end shift immediately
-                digitalWrite(SOL_12_45, LOW);
-                digitalWrite(SOL_23, LOW);
-                digitalWrite(SOL_34, LOW);
-                *currentGear_ = currentGearForShift_ = nextGear_;
-                *shifting_ = false;
-
-            }
-            else if (shiftTimer_ == 3000 || shiftTimer_ == 6000) // if ratio is not reached in 3000ms or 6000ms, try to see if ratio matches any gear at all
-            {
-                uint8_t g = checkIfTransmissionRatioMatchesAnyGear();
-                if (g != 0)
-                {
-                    digitalWrite(SOL_12_45, LOW);
-                    digitalWrite(SOL_23, LOW);
-                    digitalWrite(SOL_34, LOW);
-                   *currentGear_= currentGearForShift_ = nextGear_ = *targetGear_ = g; // force the gear to be the one that is measured
-                   *shifting_ = false; // and then end shift
-                }                
-            }
-            else if (!*useGearRatioDetection_ && shiftTimer_ > 1500) // if decided not to use gear ratio detection during the shift,            
-             // albeit it was used in the beginning of the shift, end shift in 1500ms, not so unusual situation and nothing to worry
-            {
-                digitalWrite(SOL_12_45, LOW);
-                digitalWrite(SOL_23, LOW);
-                digitalWrite(SOL_34, LOW); 
-                *currentGear_= currentGearForShift_ = nextGear_;
-                *shifting_ = false;
-            }
-            else if(shiftTimer_ > 6000) // if no gear ratio was reached after 6000ms, transmission is slipping! at least disable automatic mode here
-            { // maybe show a notification and activate fault code?   
-                digitalWrite(SOL_12_45, LOW);
-                digitalWrite(SOL_23, LOW);
-                digitalWrite(SOL_34, LOW); 
-                *currentGear_= currentGearForShift_ = *targetGear_ = nextGear_;
-                *shifting_ = false;
-                Serial.println("activate manual mode!");
-            } */
-        }
-        else if (shiftTimer_ >= shiftSolenoidTimeForShift_) //
+    { 
+        if (shiftTimer_ >= shiftSolenoidTimeForShift_) //
         {
             digitalWrite(SOL_12_45, LOW);
             digitalWrite(SOL_23, LOW);
