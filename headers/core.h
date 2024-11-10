@@ -109,6 +109,7 @@ class core
 		bool usePreShiftDelay_ = false;
 		int preShiftDelay_ = 1500;
 		bool startWith1StGear_;
+		bool enableAutoModeAtStartup_;
 		int lastShiftDuration_;	
 		bool acceptMeasuredGearAsCurrentGearAfterDelay_;
 		int delayToAcceptMeasuredGearAsCurrentGear_;

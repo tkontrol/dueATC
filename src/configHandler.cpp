@@ -66,7 +66,8 @@ void configHandler::setObjectIDs() // sets IDs for every object as they exist in
     TPSLinearizationMap_ = {"TPS_linearization_map", 0, 5000, 0};
     oilTempMap_ = {"ATF_temp_sensor_linearization", 0, 3000, 0};
 
-    startWith1StGear_ = {"Start_with_1St_gear","bool", 0, 1, 0};
+    enable_autoMode_at_startup_ = {"enable_autoMode_at_startup", "bool", 0, 1, 0};
+    startWith1StGear_ = {"start_with_1St_gear","bool", 0, 1, 0};
     minimumVehicleSpeedForGearRatioDetection_ = {"Min_vehicle_spd_for_gear_ratio_detection","km/h", 0, 15, 10};
     wheelCircum_ = {"Wheel_circum","mm", 1000, 3000, 2000};
     finalDriveRatiox100_ = {"Final_drive_ratio_x100", "int/100", 100, 600};

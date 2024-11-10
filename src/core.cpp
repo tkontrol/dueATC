@@ -118,6 +118,11 @@ void core::coreloop() // this is called in 1ms intervals, see main.cpp
     Serial.print(measuredGear_);
     Serial.print("|sh:");
     Serial.println(shifting_); */
+
+        Serial.print("lever: ");
+        Serial.print(lever_);
+        Serial.print("  speed: ");
+        Serial.println(vehicleSpeed_);
 }
 
 void core::startupProcedure()
@@ -127,16 +132,23 @@ void core::startupProcedure()
 
     configOK_ = config_.checkConfigStatus();
 
-    while (startupCounter_ < 2000)
+    while (startupCounter_ < -1)
     {
-        updateSpeedMeasurements();
-        detectDriveType();
-        updateAnalogMeasurements();
-        updateLeverPosition();
-        measuredGear_ = shiftControl_.checkIfTransmissionRatioMatchesAnyGear();
+        //updateSpeedMeasurements();
+        //detectDriveType();
+        //updateAnalogMeasurements();
+        //updateOilTempStatus();
+        //updateLeverPosition();
+        //measuredGear_ = shiftControl_.checkIfTransmissionRatioMatchesAnyGear();
+
         startupCounter_++;
+
     }
 
+    if (enableAutoModeAtStartup_ )
+    {
+        shiftingMode_ = AUT;
+    }
 }
 
 void core::applyParameters()
@@ -153,7 +165,11 @@ void core::applyParameters()
 // applies given parameter
 void core::updateParameter(configHandler::parameter* p)
 {
-    if (p->ID == "Start_with_1St_gear")
+    if (p->ID == "enable_autoMode_at_startup")
+    {
+        enableAutoModeAtStartup_ = p->data;
+    }    
+    if (p->ID == "start_with_1St_gear")
     {
         startWith1StGear_ = p->data;
     }   
@@ -710,7 +726,7 @@ void core::doAutoShifts()
     // if speed is below gear ratio detection threshold, use preshiftDelay
     if (vehicleSpeed_ > 0 && vehicleSpeed_ <= minimumVehicleSpeedForGearRatioDetection_ && shiftingMode_ == AUT)
     {
-        usePreShiftDelay_ = true;
+        usePreShiftDelay_ = false;
     }
     else
     {
