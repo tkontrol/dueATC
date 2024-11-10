@@ -549,6 +549,7 @@ void ui::drawMainScreen()
 
   screen_.setCursor(105, 44);
   screen_.print(*dataPtrs_.measuredGear);
+
   switch(*dataPtrs_.tccMod)
   {
   case TCCcontrol::TCCMode::open:
@@ -562,9 +563,19 @@ void ui::drawMainScreen()
   break;
   } 
 
-  screen_.drawStr(52, 53, "LastShiftDur");
-  screen_.setCursor(105, 53);
-  screen_.print(*dataPtrs_.lastShiftDuration);
+  //screen_.drawStr(52, 53, "LastShiftDur");
+  //screen_.setCursor(105, 53);
+  //screen_.print(*dataPtrs_.lastShiftDuration);
+
+  screen_.drawStr(52, 53, "n2: ");
+  screen_.setCursor(64, 53);
+  screen_.print(*dataPtrs_.n2Speed);
+
+  screen_.drawStr(92, 53, "n3: ");
+  screen_.setCursor(104, 53);
+  screen_.print(*dataPtrs_.n3Speed);
+
+
 
   screen_.drawStr(52, 63, "Transm.ratio:");
   screen_.setCursor(105, 63);
